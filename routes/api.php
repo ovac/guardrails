@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use \OVAC\Guardrails\Http\Controllers\HumanApprovalsController;
+use \OVAC\Guardrails\Http\Controllers\ActorApprovalsController;
 
 $prefix = trim((string) config('guardrails.route_prefix', 'staff/v1/guardrails'), '/');
 $guard = (string) config('guardrails.auth.guard', 'staff');
@@ -23,7 +23,7 @@ Route::prefix($prefix)
         if ($hasAbilities && $viewAbility !== '') {
             $indexMw[] = 'abilities:'.$viewAbility;
         }
-        Route::get('', [HumanApprovalsController::class, 'index'])
+        Route::get('', [ActorApprovalsController::class, 'index'])
             ->middleware($indexMw)
             ->name('index');
 
@@ -31,7 +31,7 @@ Route::prefix($prefix)
         if ($has2fa) $approveMw[] = '2fa.enforced';
         $signAbility = (string) config('guardrails.permissions.sign','approvals.manage');
         if ($hasAbilities && $signAbility !== '') $approveMw[] = 'abilities:'.$signAbility;
-        Route::post('{request}/steps/{step}/approve', [HumanApprovalsController::class, 'approveStep'])
+        Route::post('{request}/steps/{step}/approve', [ActorApprovalsController::class, 'approveStep'])
             ->middleware($approveMw)
             ->name('steps.approve');
     });

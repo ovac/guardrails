@@ -8,6 +8,13 @@ The format is based on Keep a Changelog and this project adheres to Semantic Ver
 
 - Add comprehensive documentation (guides, references, patterns)
 
+## [0.2.0] - 2025-09-15
+- Actor-first approach: actor_id, ActorApprovalService, ActorGuarded, new approvals controller
+- Flow DX: Flow class + facade + flow() helper; anyOfPermissions/anyOfRoles (aliases kept)
+- Tests/CI: full suite, hardened routes, coverage upload
+- Docs: actor-first language, clickable index, diagrams, verification/email/SMS, external signing
+- Migrations: rich inline documentation and spacing
+
 ## [0.1.0] - 2025-09-15
 - Initial Laravel package skeleton
 - PSR-4 `src/` structure and auto-discovery provider

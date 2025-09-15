@@ -78,11 +78,12 @@ class ControllerInterceptor
                 $options['flow'] = $ext->build();
             }
         }
-        if (!empty($options['flow']) && method_exists(HumanApprovalService::class, 'capture')) {
+        if (!empty($options['flow'])) {
+            $model->actorApprovalFlow = fn () => (array) $options['flow'];
             $model->humanApprovalFlow = fn () => (array) $options['flow'];
         }
 
-        $req = HumanApprovalService::capture($model, $guardable, $event);
+        $req = \OVAC\Guardrails\Services\ActorApprovalService::capture($model, $guardable, $event);
         return ['captured' => true, 'request_id' => $req->id, 'changes' => $guardable];
     }
 }

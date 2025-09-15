@@ -3,12 +3,12 @@
 namespace OVAC\Guardrails\Tests\Fixtures;
 
 use Illuminate\Database\Eloquent\Model;
-use OVAC\Guardrails\Concerns\HumanGuarded;
-use OVAC\Guardrails\Services\FlowExtensionBuilder as Flow;
+use OVAC\Guardrails\Concerns\ActorGuarded;
+use OVAC\Guardrails\Services\Flow;
 
 class Post extends Model
 {
-    use HumanGuarded;
+    use ActorGuarded;
 
     protected $table = 'posts';
     protected $guarded = [];
@@ -21,7 +21,7 @@ class Post extends Model
         return ['published'];
     }
 
-    public function humanApprovalFlow(array $dirty, string $event): array
+    public function actorApprovalFlow(array $dirty, string $event): array
     {
         return [
             Flow::make()->anyOfPermissions(['content.publish'])->toStep(1, 'Editorial')->build(),

@@ -9,7 +9,7 @@ Implements: `OVAC\\Guardrails\\Contracts\\FlowExtender`
 Usage
 
 ```php
-use OVAC\\Guardrails\\Services\\FlowExtensionBuilder as Flow;
+use OVAC\\Guardrails\\Services\\Flow;
 
 $flow = Flow::make()
   ->anyOfPermissions(['orders.manage','orders.escalate'])

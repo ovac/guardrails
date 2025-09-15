@@ -1,7 +1,7 @@
 <?php
 
 use OVAC\Guardrails\Services\ControllerInterceptor;
-use OVAC\Guardrails\Services\FlowExtensionBuilder as Flow;
+use OVAC\Guardrails\Services\Flow;
 use OVAC\Guardrails\Tests\Fixtures\Post;
 use OVAC\Guardrails\Tests\Fixtures\User;
 

@@ -3,21 +3,21 @@ description: Intercept mutations without modifying your models.
 
 # Controller Interception Guide
 
-Use `OVAC\\Guardrails\\Concerns\\InteractsWithHumanApproval` in your controller to route critical mutations through Guardrails without touching models.
+Use `OVAC\\Guardrails\\Concerns\\InteractsWithActorApproval` in your controller to route critical mutations through Guardrails without touching models.
 
 ```php
-use OVAC\\Guardrails\\Concerns\\InteractsWithHumanApproval;
-use OVAC\\Guardrails\\Services\\FlowExtensionBuilder as Flow;
+use OVAC\\Guardrails\\Concerns\\InteractsWithActorApproval;
+use OVAC\\Guardrails\\Services\\Flow;
 
 class OrdersController extends Controller
 {
-    use InteractsWithHumanApproval;
+    use InteractsWithActorApproval;
 
     public function update(UpdateOrderRequest $request, Order $order)
     {
         $changes = $request->validated();
 
-        $result = $this->humanApprovalIntercept($order, $changes, [
+$result = $this->actorApprovalIntercept($order, $changes, [
             'only' => ['status_id'], // only guard status changes
             'extender' => Flow::make()
                 ->anyOfPermissions(['orders.manage','orders.escalate'])

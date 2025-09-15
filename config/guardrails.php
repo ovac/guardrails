@@ -84,7 +84,7 @@ return [
     |--------------------------------------------------------------------------
     |
     | Toggle for the controller helper that routes mutations through Guardrails
-    | when enabled (see InteractsWithHumanApproval trait).
+    | when enabled (see InteractsWithActorApproval trait).
     |
     */
     'controller' => [

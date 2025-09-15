@@ -72,4 +72,4 @@ Flow::make()->anyOfRoles(['bd_lead','legal_counsel'])
   ->build();
 ```
 
-Each example can be plugged into model `humanApprovalFlow()` or computed in your controller/interceptor at runtime.
+Each example can be plugged into model `actorApprovalFlow()` or computed in your controller/interceptor at runtime.

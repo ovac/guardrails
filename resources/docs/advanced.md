@@ -8,7 +8,7 @@ Flows can be computed at runtime based on changes, actor, environment, or any bu
 ## Risk-Based Thresholds
 
 ```php
-public function humanApprovalFlow(array $dirty, string $event): array
+public function actorApprovalFlow(array $dirty, string $event): array
 {
     $risk = 0;
     if (($dirty['amount'] ?? 0) > 100000) $risk += 2;
@@ -31,7 +31,7 @@ public function humanApprovalFlow(array $dirty, string $event): array
 Only guard some attributes; let others pass.
 
 ```php
-$result = $this->humanApprovalIntercept($model, $changes, [
+$result = $this->actorApprovalIntercept($model, $changes, [
   'only' => ['published','price','visibility'],
   'extender' => Flow::make()->anyOfRoles(['editor','ops_manager'])->toStep(1, 'Review'),
 ]);

@@ -7,7 +7,7 @@ Guardrails stores original and proposed values along with who initiated and who 
 
 ## Built-in Data
 
-- `approval_requests` — `actor_staff_id`, `new_data`, `original_data`, `context` (includes route name and event)
+- `approval_requests` — `actor_id`, `new_data`, `original_data`, `context` (includes route name and event)
 - `approval_steps` — `level`, `threshold`, `status`, `completed_at`, `meta.signers`
 - `approval_signatures` — `staff_id`, `decision`, `comment`, `signed_at`
 
@@ -23,7 +23,7 @@ Guardrails stores original and proposed values along with who initiated and who 
 Event::listen(\OVAC\Guardrails\Events\ApprovalRequestCaptured::class, function ($e) {
     Audit::record('approval.captured', [
         'request_id' => $e->request->id,
-        'actor_staff_id' => $e->request->actor_staff_id,
+        'actor_id' => $e->request->actor_id,
         'approvable' => [$e->request->approvable_type, $e->request->approvable_id],
         'new' => $e->request->new_data,
         'original' => $e->request->original_data,
@@ -56,4 +56,3 @@ To generate human-friendly notes for accounting/accountability:
 - Render differences between `original_data` and `new_data` per request.
 - Include step names, signers (by `staff_id` lookup), timestamps, and comments.
 - Append the approval request ID in deployment or release notes.
-

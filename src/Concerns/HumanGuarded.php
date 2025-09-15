@@ -37,7 +37,7 @@ trait HumanGuarded
             }
 
             // Capture and prevent write; controller/service applies changes on approval
-            $req = HumanApprovalService::capture($model, $dirty, 'updating');
+            $req = \OVAC\Guardrails\Services\ActorApprovalService::capture($model, $dirty, 'updating');
             return false;
         });
     }

@@ -20,8 +20,7 @@ return new class extends Migration
             $table->nullableMorphs('approvable');
 
             // The authenticated user who initiated the change.
-            // Note: named actor_staff_id for BC; can be mapped to your guard's user model.
-            $table->unsignedInteger('actor_staff_id')->nullable()->index()
+            $table->unsignedInteger('actor_id')->nullable()->index()
                 ->comment('ID of the user who initiated this request.');
 
             // Lifecycle state of the request

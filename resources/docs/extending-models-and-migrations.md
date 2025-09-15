@@ -78,15 +78,14 @@ Event::listen(\OVAC\Guardrails\Events\ApprovalRequestCaptured::class, function (
 
 ## Add Indexes for Performance
 
-Consider indexing `state`, `actor_staff_id`, and any new foreign keys to speed up dashboards:
+Consider indexing `state`, `actor_id`, and any new foreign keys to speed up dashboards:
 
 ```php
 Schema::table('human_approval_requests', function (Blueprint $table) {
-    $table->index(['state','actor_staff_id']);
+    $table->index(['state','actor_id']);
 });
 ```
 
 ## Customize Behavior With Policies or Gates
 
 You can layer route middleware or gates to enforce extra rules beyond signer policies. For example, block approvals after business hours.
-

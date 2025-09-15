@@ -73,10 +73,10 @@ class SigningPolicy
         if (($requireSamePerm || $requireSameRole) && $hasSpatie) {
             $initiator = null;
             if ($context && method_exists($context, 'request')) {
-                $initiatorId = optional($context->request)->actor_staff_id;
+                $initiatorId = optional($context->request)->actor_id;
                 if ($initiatorId) $initiator = Auth::findUserById($initiatorId);
-            } elseif ($context && property_exists($context, 'actor_staff_id')) {
-                $initiator = Auth::findUserById($context->actor_staff_id);
+            } elseif ($context && property_exists($context, 'actor_id')) {
+                $initiator = Auth::findUserById($context->actor_id);
             }
 
             if ($initiator) {

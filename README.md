@@ -55,7 +55,7 @@ Guardrails adds human‑in‑the‑loop approvals to your Laravel apps. Mark sen
 
 **At a Glance**
 
-- Guard models with `HumanGuarded` or call `humanApprovalIntercept()` in controllers.
+- Guard models with `ActorGuarded` or call `actorApprovalIntercept()` in controllers.
 - Build flows with `FlowExtensionBuilder` (any‑of/all‑of, roles/permissions, steps).
 - Approvals are stored as requests → steps → signatures. When the last step passes, the change is applied automatically.
 
@@ -95,19 +95,19 @@ php artisan migrate
 Guard a model and require a quick two‑man rule (initiator + one peer):
 
 ```php
-use OVAC\Guardrails\Concerns\HumanGuarded;
-use OVAC\Guardrails\Services\FlowExtensionBuilder as Flow;
+use OVAC\Guardrails\Concerns\ActorGuarded;
+use OVAC\Guardrails\Services\Flow;
 
 class Post extends Model
 {
-    use HumanGuarded;
+    use ActorGuarded;
 
     public function humanGuardAttributes(): array
     {
         return ['published'];
     }
 
-    public function humanApprovalFlow(array $dirty, string $event): array
+    public function actorApprovalFlow(array $dirty, string $event): array
     {
         return [
             Flow::make()
@@ -123,7 +123,7 @@ class Post extends Model
 Prefer controllers? Intercept without touching models:
 
 ```php
-$result = $this->humanApprovalIntercept($post, ['published' => true], [
+$result = $this->actorApprovalIntercept($post, ['published' => true], [
     'only' => ['published'],
     'extender' => Flow::make()->anyOfRoles(['editor','managing_editor'])->toStep(1, 'Editorial Approval'),
 ]);
@@ -224,7 +224,7 @@ Highlights worth reading next:
 flowchart LR
   A[Your Code: Model Update or Controller] --> B{Guarded Attributes?}
   B -- no --> Z[Apply Changes Immediately]
-  B -- yes --> C[Capture via HumanApprovalService]
+  B -- yes --> C[Capture via ActorApprovalService]
   C --> D[(DB: approval_requests)]
   C --> E[(DB: approval_steps)]
   D -->|events| H[ApprovalRequestCaptured]

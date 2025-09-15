@@ -26,11 +26,10 @@ composer update
 ## Writing Your App Tests
 
 1) Use in-memory sqlite or test DB; load Guardrails migrations and your own tables.
-2) Create a model with the `HumanGuarded` trait and declare guarded attributes.
+2) Create a model with the `ActorGuarded` trait and declare guarded attributes.
 3) `actingAs($user, config('guardrails.auth.guard'))` to test capture/approve flows.
 4) Event testing: `Event::fake([...])` and `Event::assertDispatched(...)`.
 
 ## CI
 
 GitHub Actions workflow `run-tests.yml` runs the suite across PHP 8.1–8.3 and uploads coverage to Codecov.
-

@@ -25,6 +25,11 @@ class GuardrailsServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->mergeConfigFrom(__DIR__.'/../config/guardrails.php', 'guardrails');
+
+        // Bind Flow builder for the facade
+        $this->app->bind('guardrails.flow', function () {
+            return new \OVAC\Guardrails\Services\Flow();
+        });
     }
 
     /**

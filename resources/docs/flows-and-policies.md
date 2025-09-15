@@ -11,7 +11,7 @@ Guardrails uses signer rules per step to determine who can approve.
 ## Any-of vs All-of
 
 ```php
-use OVAC\\Guardrails\\Services\\FlowExtensionBuilder as Flow;
+use OVAC\\Guardrails\\Services\\Flow;
 
 // Any-of permissions
 Flow::make()

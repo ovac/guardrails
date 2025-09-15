@@ -8,8 +8,8 @@ You can keep your existing routes/controllers and still use Guardrails to captur
 ## Capture in Your Update Action
 
 ```php
-use OVAC\Guardrails\Services\HumanApprovalService as Guardrails;
-use OVAC\Guardrails\Services\FlowExtensionBuilder as Flow;
+use OVAC\Guardrails\Services\ActorApprovalService as Guardrails;
+use OVAC\Guardrails\Services\Flow;
 
 public function update(Request $request, Post $post)
 {
@@ -19,7 +19,7 @@ public function update(Request $request, Post $post)
     $guarded = array_intersect_key($changes, array_flip(['published']));
     if (!empty($guarded)) {
         // Optional: dynamic flow
-        $post->humanApprovalFlow = fn () => [
+        $post->actorApprovalFlow = fn () => [
             Flow::make()->anyOfRoles(['editor','managing_editor'])->toStep(1, 'Editorial Approval')->build(),
         ];
 

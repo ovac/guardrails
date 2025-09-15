@@ -42,7 +42,7 @@ Flow::make()
 ```php
 $changes = $request->validate(['status_id' => 'integer']);
 
-$result = $this->humanApprovalIntercept($model, $changes, [
+$result = $this->actorApprovalIntercept($model, $changes, [
   'only' => ['status_id'],
   'extender' => Flow::make()->anyOfPermissions(['orders.manage','orders.escalate'])->toStep(2, 'Ops'),
 ]);

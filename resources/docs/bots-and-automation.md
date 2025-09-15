@@ -3,7 +3,7 @@ description: Using service accounts, webhooks, and chatops with Guardrails.
 
 # Bots & Automation
 
-Bots can open approval requests (as initiators) or receive events to notify teams. Guardrails stores the `actor_staff_id`, so consider creating a service account user for your bot.
+Bots can open approval requests (as initiators) or receive events to notify teams. Guardrails stores the `actor_id`, so consider creating a service account user for your bot.
 
 ## Service Accounts as Initiators
 
@@ -45,4 +45,3 @@ Guardrails can gate config toggles or deploy flags via your admin app:
 
 - Approve a feature flag before a pipeline proceeds.
 - Store the approval request ID in your release notes or build metadata.
-

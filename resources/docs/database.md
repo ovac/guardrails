@@ -16,7 +16,7 @@ Tables
 
 - `id` — Primary key
 - `approvable_type`, `approvable_id` — Morph target of the change
-- `actor_staff_id` — Staff user who initiated the change
+- `actor_id` — User who initiated the change (from your configured guard)
 - `state` — pending|approved|rejected (package uses `pending` and `approved`)
 - `new_data` — JSON snapshot of proposed values
 - `original_data` — JSON snapshot of original values
@@ -51,4 +51,3 @@ Relationships
 - `ApprovalStep` hasMany `ApprovalSignature`
 - `ApprovalSignature` belongsTo `ApprovalStep`
 - `ApprovalRequest` morphTo `approvable`
-

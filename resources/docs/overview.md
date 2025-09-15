@@ -4,7 +4,7 @@ title: Guardrails Overview
 
 # Guardrails
 
-Guardrails adds human approval flows to critical mutations in your management system. Define guarded attributes, build multi‑step signer policies, and expose a simple API + UI for staff to review and sign.
+Guardrails adds actor approval flows to critical mutations in your management system. Define guarded attributes, build multi‑step signer policies, and expose a simple API + UI for reviewers to sign.
 
 ## Endpoints
 
@@ -13,11 +13,10 @@ Guardrails adds human approval flows to critical mutations in your management sy
 
 ## Usage Patterns
 
-- Model trait: `OVAC\\Guardrails\\Concerns\\HumanGuarded`
-- Controller helper: `InteractsWithHumanApproval`
+- Model trait: `OVAC\\Guardrails\\Concerns\\ActorGuarded`
+- Controller helper: `InteractsWithActorApproval`
 - Flow builder: `OVAC\\Guardrails\\Services\\FlowExtensionBuilder`
 
 ## Configuration
 
 See `config/guardrails.php` for route + policy settings.
-

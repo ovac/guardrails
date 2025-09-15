@@ -1,6 +1,6 @@
 <?php
 
-use OVAC\Guardrails\Services\FlowExtensionBuilder as Flow;
+use OVAC\Guardrails\Services\Flow;
 
 it('builds a single-step any-of permission flow', function () {
     $flow = Flow::make()->anyOfPermissions(['a','b'])->toStep(2, 'Ops')->build();
