@@ -12,10 +12,10 @@ Usage
 use OVAC\\Guardrails\\Services\\FlowExtensionBuilder as Flow;
 
 $flow = Flow::make()
-  ->permissionsAny(['orders.manage','orders.escalate'])
+  ->anyOfPermissions(['orders.manage','orders.escalate'])
   ->includeInitiator(true, true)
   ->toStep(2, 'Ops Review')
-  ->rolesAny(['finance_manager','ops_manager'])
+  ->anyOfRoles(['finance_manager','ops_manager'])
   ->toStep(1, 'Management')
   ->build();
 ```
@@ -26,12 +26,12 @@ API
 - `guard(string $guard): static` — Auth guard for signer checks (default `staff`).
 - `permissions(array|string $perms): static` — Append permission(s); all-of by default.
 - `setPermissions(array|string $perms): static` — Replace permissions list.
-- `permissionsAny(array|string $perms): static` — Use any-of semantics.
+- `anyOfPermissions(array|string $perms): static` — Use any-of semantics.
 - `requireAnyPermissions(): static` — Alias to set any-of mode.
 - `requireAllPermissions(): static` — Alias to set all-of mode.
 - `roles(array|string $roles): static` — Append role(s); all-of by default.
 - `setRoles(array|string $roles): static` — Replace roles list.
-- `rolesAny(array|string $roles): static` — Use any-of semantics.
+- `anyOfRoles(array|string $roles): static` — Use any-of semantics.
 - `requireAnyRoles(): static` — Alias to set any-of mode.
 - `requireAllRoles(): static` — Alias to set all-of mode.
 - `includeInitiator(bool $include = true, bool $preapprove = true): static` — Include initiator as a potential signer and optionally pre-approve.
@@ -46,4 +46,3 @@ Notes
 - Any-of vs all-of determines whether a signer needs one or all listed permissions/roles.
 - Pre-approving initiator counts them immediately toward the threshold.
 - “Same-as-initiator” constraints require Spatie permissions/roles to compute overlaps.
-

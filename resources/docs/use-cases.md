@@ -11,7 +11,7 @@ Two‑man rule to publish a blog post: author + any editor.
 
 ```php
 Flow::make()
-  ->permissionsAny(['content.publish'])
+  ->anyOfPermissions(['content.publish'])
   ->includeInitiator(true, true)   // author pre‑approved
   ->toStep(2, 'Editorial Review')  // needs one editor
   ->build();
@@ -26,8 +26,8 @@ Approve discounts based on depth: Sales lead under 20%, VP if 20%+.
 $depth = (int) $changes['discount_percent'];
 
 return $depth < 20
-  ? Flow::make()->rolesAny(['sales_lead'])->toStep(1, 'Sales Approval')->build()
-  : Flow::make()->rolesAny(['vp_sales'])->toStep(1, 'VP Approval')->build();
+  ? Flow::make()->anyOfRoles(['sales_lead'])->toStep(1, 'Sales Approval')->build()
+  : Flow::make()->anyOfRoles(['vp_sales'])->toStep(1, 'VP Approval')->build();
 ```
 
 ## Product Rollout (Product + Engineering)
@@ -36,9 +36,9 @@ Ops approves feature flag, then Engineering Lead approves rollout.
 
 ```php
 Flow::make()
-  ->rolesAny(['ops_manager'])
+  ->anyOfRoles(['ops_manager'])
   ->toStep(1, 'Ops Gate')
-  ->rolesAny(['eng_lead'])
+  ->anyOfRoles(['eng_lead'])
   ->toStep(1, 'Engineering Gate')
   ->build();
 ```
@@ -49,7 +49,7 @@ Any of Legal OR Security must sign before publishing policy updates.
 
 ```php
 Flow::make()
-  ->rolesAny(['legal_counsel','security_officer'])
+  ->anyOfRoles(['legal_counsel','security_officer'])
   ->toStep(1, 'Compliance Review')
   ->build();
 ```
@@ -73,7 +73,7 @@ Require 3 votes out of 5 architects.
 
 ```php
 Flow::make()
-  ->rolesAny(['architect'])
+  ->anyOfRoles(['architect'])
   ->toStep(3, 'Architecture Vote')
   ->build();
 ```
@@ -84,13 +84,12 @@ Ops must approve; if amount > 100k, add CFO.
 
 ```php
 $flow = Flow::make()
-  ->permissionsAny(['ops.change'])
+  ->anyOfPermissions(['ops.change'])
   ->toStep(1, 'Ops');
 
 if (($changes['amount'] ?? 0) > 100000) {
-  $flow->rolesAny(['cfo'])->toStep(1, 'CFO');
+  $flow->anyOfRoles(['cfo'])->toStep(1, 'CFO');
 }
 
 return $flow->build();
 ```
-

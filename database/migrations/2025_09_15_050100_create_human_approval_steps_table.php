@@ -8,14 +8,19 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // Per-request steps define reviewer rules and thresholds.
+        //
+        // Each step belongs to a request and is completed when the number of
+        // recorded approvals reaches its threshold.
         Schema::create('human_approval_steps', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->unsignedBigInteger('request_id')->index();
-            $table->unsignedInteger('level');
-            $table->string('name');
-            $table->unsignedInteger('threshold')->default(1);
+            $table->unsignedBigInteger('request_id')->index()
+                ->comment('Parent approval request.');
+            $table->unsignedInteger('level')->comment('Step order (1-based).');
+            $table->string('name')->comment('Display name for this step.');
+            $table->unsignedInteger('threshold')->default(1)->comment('Approvals required.');
             $table->enum('status', ['pending','completed','rejected'])->default('pending');
-            $table->json('meta')->nullable();
+            $table->json('meta')->nullable()->comment('Signer rules and behavior flags.');
             $table->dateTime('completed_at')->nullable();
             $table->timestamps();
 
@@ -28,4 +33,3 @@ return new class extends Migration
         Schema::dropIfExists('human_approval_steps');
     }
 };
-

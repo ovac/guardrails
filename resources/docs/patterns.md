@@ -10,7 +10,7 @@ tags: [patterns, recipes, approvals]
 
 ```php
 Flow::make()
-  ->permissionsAny(['orders.manage'])
+  ->anyOfPermissions(['orders.manage'])
   ->includeInitiator(true, true)
   ->toStep(2, 'Ops Two-Man')
   ->build();
@@ -20,7 +20,7 @@ Flow::make()
 
 ```php
 Flow::make()
-  ->rolesAny(['finance_manager','ops_manager'])
+  ->anyOfRoles(['finance_manager','ops_manager'])
   ->toStep(1, 'Management')
   ->build();
 ```
@@ -29,10 +29,10 @@ Flow::make()
 
 ```php
 Flow::make()
-  ->permissionsAny(['local_rates.manage'])
+  ->anyOfPermissions(['local_rates.manage'])
   ->includeInitiator(true, true)
   ->toStep(2, 'Ops')
-  ->rolesAny(['finance_manager','ops_manager'])
+  ->anyOfRoles(['finance_manager','ops_manager'])
   ->toStep(1, 'Management')
   ->build();
 ```
@@ -44,7 +44,6 @@ $changes = $request->validate(['status_id' => 'integer']);
 
 $result = $this->humanApprovalIntercept($model, $changes, [
   'only' => ['status_id'],
-  'extender' => Flow::make()->permissionsAny(['orders.manage','orders.escalate'])->toStep(2, 'Ops'),
+  'extender' => Flow::make()->anyOfPermissions(['orders.manage','orders.escalate'])->toStep(2, 'Ops'),
 ]);
 ```
-

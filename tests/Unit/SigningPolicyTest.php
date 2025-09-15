@@ -20,4 +20,3 @@ it('checks roles with spatie-like methods', function () {
     expect(SigningPolicy::canSign($u, ['roles' => ['editor','lead'], 'roles_mode' => 'all']))->toBeFalse();
     expect(SigningPolicy::canSign($u, ['roles' => ['contrib','editor'], 'roles_mode' => 'any']))->toBeTrue();
 });
-

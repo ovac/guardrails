@@ -24,8 +24,7 @@ class Post extends Model
     public function humanApprovalFlow(array $dirty, string $event): array
     {
         return [
-            Flow::make()->permissionsAny(['content.publish'])->toStep(1, 'Editorial')->build(),
+            Flow::make()->anyOfPermissions(['content.publish'])->toStep(1, 'Editorial')->build(),
         ];
     }
 }
-

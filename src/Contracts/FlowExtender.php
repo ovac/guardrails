@@ -8,10 +8,10 @@ namespace OVAC\Guardrails\Contracts;
  * Usage example:
  *
  * FlowExtensionBuilder::make()
- *   ->permissionsAny(['orders.manage','orders.escalate'])
+ *   ->anyOfPermissions(['orders.manage','orders.escalate'])
  *   ->includeInitiator(true, true)
  *   ->toStep(2, 'Ops Review')
- *   ->rolesAny(['finance_manager','ops_manager'])
+ *   ->anyOfRoles(['finance_manager','ops_manager'])
  *   ->toStep(1, 'Management')
  *   ->build();
  */
@@ -52,6 +52,14 @@ interface FlowExtender
     public function setPermissions(array|string $permissions): static;
 
     /**
+     * Append permissions and mark as any-of semantics.
+     *
+     * @param array|string $permissions
+     * @return static
+     */
+    public function anyOfPermissions(array|string $permissions): static;
+
+    /**
      * Append one or more roles (all-of by default).
      *
      * @param array|string $roles Role names
@@ -66,6 +74,14 @@ interface FlowExtender
      * @return static
      */
     public function setRoles(array|string $roles): static;
+
+    /**
+     * Append roles and mark as any-of semantics.
+     *
+     * @param array|string $roles
+     * @return static
+     */
+    public function anyOfRoles(array|string $roles): static;
 
     /**
      * Finalize current step and push to flow.

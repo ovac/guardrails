@@ -12,11 +12,10 @@ it('intercepts in controller and captures with custom flow', function () {
 
     $result = ControllerInterceptor::intercept($post, ['published' => true], [
         'only' => ['published'],
-        'extender' => Flow::make()->permissionsAny(['content.publish'])->toStep(1, 'Editorial'),
+        'extender' => Flow::make()->anyOfPermissions(['content.publish'])->toStep(1, 'Editorial'),
     ]);
 
     expect($result['captured'])->toBeTrue();
     $req = \OVAC\Guardrails\Models\ApprovalRequest::first();
     expect($req)->not->toBeNull();
 });
-

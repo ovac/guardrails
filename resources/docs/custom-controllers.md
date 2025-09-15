@@ -20,7 +20,7 @@ public function update(Request $request, Post $post)
     if (!empty($guarded)) {
         // Optional: dynamic flow
         $post->humanApprovalFlow = fn () => [
-            Flow::make()->rolesAny(['editor','managing_editor'])->toStep(1, 'Editorial Approval')->build(),
+            Flow::make()->anyOfRoles(['editor','managing_editor'])->toStep(1, 'Editorial Approval')->build(),
         ];
 
         Guardrails::capture($post, $guarded, 'updating');
@@ -85,4 +85,3 @@ public function approve(Request $request, int $requestId, int $stepId)
 ```
 
 This pattern keeps you fully in control of routing and middleware while reusing Guardrails’ core logic.
-

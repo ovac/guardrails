@@ -27,7 +27,7 @@ class EcurrencySetting extends Model
     {
         return [
             Flow::make()
-                ->permissionsAny(['local_rates.manage'])
+                ->anyOfPermissions(['local_rates.manage'])
                 ->includeInitiator(true, true)
                 ->toStep(2, 'Ops Review')
                 ->build(),
@@ -54,4 +54,3 @@ class EcurrencySetting extends Model
 ## Bypass
 
 You can implement your own logic to bypass capturing by using the controller helper instead, or temporarily turning off the global controller toggle.
-

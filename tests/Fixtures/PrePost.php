@@ -24,8 +24,7 @@ class PrePost extends Model
     public function humanApprovalFlow(array $dirty, string $event): array
     {
         return [
-            Flow::make()->permissionsAny(['content.publish'])->includeInitiator(true, true)->toStep(1, 'AutoCount')->build(),
+            Flow::make()->anyOfPermissions(['content.publish'])->includeInitiator(true, true)->toStep(1, 'AutoCount')->build(),
         ];
     }
 }
-

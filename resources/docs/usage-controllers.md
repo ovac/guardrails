@@ -20,7 +20,7 @@ class OrdersController extends Controller
         $result = $this->humanApprovalIntercept($order, $changes, [
             'only' => ['status_id'], // only guard status changes
             'extender' => Flow::make()
-                ->permissionsAny(['orders.manage','orders.escalate'])
+                ->anyOfPermissions(['orders.manage','orders.escalate'])
                 ->includeInitiator(true, true)
                 ->toStep(2, 'Ops'),
         ]);
@@ -42,4 +42,3 @@ Options
 - except: array attribute keys to ignore
 - flow: array preset flow (overrides model flow)
 - extender: `FlowExtender` to build a flow fluently
-

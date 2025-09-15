@@ -14,10 +14,10 @@ public function humanApprovalFlow(array $dirty, string $event): array
     if (($dirty['amount'] ?? 0) > 100000) $risk += 2;
     if (($dirty['status'] ?? null) === 'critical') $risk += 1;
 
-    $flow = Flow::make()->permissionsAny(['ops.change']);
+    $flow = Flow::make()->anyOfPermissions(['ops.change']);
 
     if ($risk >= 2) {
-        $flow->toStep(2, 'Ops (High Risk)')->rolesAny(['cfo'])->toStep(1, 'CFO');
+        $flow->toStep(2, 'Ops (High Risk)')->anyOfRoles(['cfo'])->toStep(1, 'CFO');
     } else {
         $flow->toStep(1, 'Ops');
     }
@@ -33,7 +33,7 @@ Only guard some attributes; let others pass.
 ```php
 $result = $this->humanApprovalIntercept($model, $changes, [
   'only' => ['published','price','visibility'],
-  'extender' => Flow::make()->rolesAny(['editor','ops_manager'])->toStep(1, 'Review'),
+  'extender' => Flow::make()->anyOfRoles(['editor','ops_manager'])->toStep(1, 'Review'),
 ]);
 ```
 
@@ -58,4 +58,3 @@ Flow::make()
   ->toStep(2, 'Peer Review')
   ->build();
 ```
-

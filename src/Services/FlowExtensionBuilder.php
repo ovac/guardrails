@@ -10,13 +10,13 @@ use OVAC\Guardrails\Contracts\FlowExtender;
  * Examples:
  * - Any-of permissions, count initiator:
  *   FlowExtensionBuilder::make()
- *     ->permissionsAny(['orders.manage','orders.escalate'])
+ *     ->anyOfPermissions(['orders.manage','orders.escalate'])
  *     ->includeInitiator(true, true)
  *     ->toStep(2, 'Ops Review')
  *     ->build();
  *
  * - Any-of roles:
- *   FlowExtensionBuilder::make()->rolesAny(['ops_manager','finance_manager'])->toStep(1, 'Mgmt')->build();
+ *   FlowExtensionBuilder::make()->anyOfRoles(['ops_manager','finance_manager'])->toStep(1, 'Mgmt')->build();
  */
 /**
  * Fluent builder for multi-step approval flows.
@@ -97,11 +97,20 @@ class FlowExtensionBuilder implements FlowExtender
      * @param array|string $permissions Permission names
      * @return static
      */
-    public function permissionsAny(array|string $permissions): static
+    public function anyOfPermissions(array|string $permissions): static
     {
         $this->permissions($permissions);
         $this->current['signers']['permissions_mode'] = 'any';
         return $this;
+    }
+
+    /**
+     * Backwards-compatible alias.
+     * @deprecated Use anyOfPermissions()
+     */
+    public function permissionsAny(array|string $permissions): static
+    {
+        return $this->anyOfPermissions($permissions);
     }
 
     /**
@@ -157,11 +166,20 @@ class FlowExtensionBuilder implements FlowExtender
      * @param array|string $roles Role names
      * @return static
      */
-    public function rolesAny(array|string $roles): static
+    public function anyOfRoles(array|string $roles): static
     {
         $this->roles($roles);
         $this->current['signers']['roles_mode'] = 'any';
         return $this;
+    }
+
+    /**
+     * Backwards-compatible alias.
+     * @deprecated Use anyOfRoles()
+     */
+    public function rolesAny(array|string $roles): static
+    {
+        return $this->anyOfRoles($roles);
     }
 
     /**

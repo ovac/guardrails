@@ -8,15 +8,32 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // Top-level record for a guarded change.
+        //
+        // Stores the approvable morph target (model + id), the actor who
+        // initiated the change, the request state, and JSON snapshots of
+        // original and proposed values along with optional context/meta.
         Schema::create('human_approval_requests', function (Blueprint $table) {
             $table->bigIncrements('id');
+
+            // Target of the approval (polymorphic relation)
             $table->nullableMorphs('approvable');
-            $table->unsignedInteger('actor_staff_id')->nullable()->index();
-            $table->enum('state', ['pending', 'approved', 'rejected', 'cancelled'])->default('pending');
-            $table->json('new_data');
-            $table->json('original_data')->nullable();
-            $table->json('context')->nullable();
-            $table->json('meta')->nullable();
+
+            // The authenticated user who initiated the change.
+            // Note: named actor_staff_id for BC; can be mapped to your guard's user model.
+            $table->unsignedInteger('actor_staff_id')->nullable()->index()
+                ->comment('ID of the user who initiated this request.');
+
+            // Lifecycle state of the request
+            $table->enum('state', ['pending', 'approved', 'rejected', 'cancelled'])->default('pending')
+                ->comment('Current state of the approval request.');
+
+            // Snapshots for diffing and audit
+            $table->json('new_data')->comment('Proposed values (subset of attributes).');
+            $table->json('original_data')->nullable()->comment('Original values prior to change.');
+            $table->json('context')->nullable()->comment('Route/event metadata for audit.');
+            $table->json('meta')->nullable()->comment('Extensible metadata for custom needs.');
+
             $table->timestamps();
         });
     }
@@ -26,4 +43,3 @@ return new class extends Migration
         Schema::dropIfExists('human_approval_requests');
     }
 };
-

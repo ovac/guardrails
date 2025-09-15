@@ -7,16 +7,20 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration {
     public function up(): void
     {
+        // Simple users table for testing permissions/roles.
+        //
+        // The perms/roles JSON columns emulate Spatie methods in the fixture model.
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->string('name')->nullable();
             $table->string('email')->unique()->nullable();
             $table->string('password')->nullable();
-            $table->json('perms')->nullable();
-            $table->json('roles')->nullable();
+            $table->json('perms')->nullable()->comment('Array of permission names.');
+            $table->json('roles')->nullable()->comment('Array of role names.');
             $table->timestamps();
         });
 
+        // Minimal posts table with a publish flag guarded by Guardrails in tests.
         Schema::create('posts', function (Blueprint $table) {
             $table->id();
             $table->string('title')->nullable();
@@ -31,4 +35,3 @@ return new class extends Migration {
         Schema::dropIfExists('users');
     }
 };
-

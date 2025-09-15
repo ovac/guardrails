@@ -111,7 +111,7 @@ class Post extends Model
     {
         return [
             Flow::make()
-                ->permissionsAny(['content.publish'])
+                ->anyOfPermissions(['content.publish'])
                 ->includeInitiator(true, true)
                 ->toStep(2, 'Editorial Review')
                 ->build(),
@@ -125,7 +125,7 @@ Prefer controllers? Intercept without touching models:
 ```php
 $result = $this->humanApprovalIntercept($post, ['published' => true], [
     'only' => ['published'],
-    'extender' => Flow::make()->rolesAny(['editor','managing_editor'])->toStep(1, 'Editorial Approval'),
+    'extender' => Flow::make()->anyOfRoles(['editor','managing_editor'])->toStep(1, 'Editorial Approval'),
 ]);
 ```
 
@@ -141,7 +141,7 @@ $result = $this->humanApprovalIntercept($post, ['published' => true], [
 
 ```php
 Flow::make()
-  ->permissionsAny(['content.publish'])    // any editor with publish permission
+  ->anyOfPermissions(['content.publish'])    // any editor with publish permission
   ->includeInitiator(true, true)            // author counts as one approval
   ->toStep(2, 'Editorial Review')          // needs one more editor
   ->build();
@@ -151,9 +151,9 @@ Flow::make()
 
 ```php
 Flow::make()
-  ->rolesAny(['support_lead'])             // support lead approves first
+  ->anyOfRoles(['support_lead'])             // support lead approves first
   ->toStep(1, 'Support Approval')
-  ->rolesAny(['security_officer'])         // then security approves
+  ->anyOfRoles(['security_officer'])         // then security approves
   ->toStep(1, 'Security Approval')
   ->build();
 ```
@@ -162,7 +162,7 @@ Flow::make()
 
 ```php
 Flow::make()
-  ->rolesAny(['finance_manager','ops_manager'])
+  ->anyOfRoles(['finance_manager','ops_manager'])
   ->toStep(1, 'Management Approval')
   ->build();
 ```
@@ -183,10 +183,10 @@ Flow::make()
 
 ```php
 Flow::make()
-  ->permissionsAny(['ops.change'])
+  ->anyOfPermissions(['ops.change'])
   ->includeInitiator(true, true)
   ->toStep(2, 'Ops Review')
-  ->rolesAny(['cto','cfo'])
+  ->anyOfRoles(['cto','cfo'])
   ->toStep(1, 'Executive Sign‑off')
   ->build();
 ```

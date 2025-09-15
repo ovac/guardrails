@@ -15,7 +15,7 @@ use OVAC\\Guardrails\\Services\\FlowExtensionBuilder as Flow;
 
 // Any-of permissions
 Flow::make()
-  ->permissionsAny(['orders.manage','orders.escalate'])
+  ->anyOfPermissions(['orders.manage','orders.escalate'])
   ->toStep(1, 'Ops')
   ->build();
 
@@ -50,4 +50,3 @@ Flow::make()
 Notes:
 - If the initiator lacks the allowed permission/role, the constraint yields no overlap and prevents signing.
 - Prefer `includeInitiator(true, true)` without “same-as” when you want initiator to count if eligible, otherwise ignored.
-
