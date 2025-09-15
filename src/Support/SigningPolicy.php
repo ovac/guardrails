@@ -14,9 +14,10 @@ class SigningPolicy
      * Determine if a user can sign a given step based on step meta signers.
      * Supports any-of/all-of semantics and optional initiator overlap.
      *
-     * @param Authenticatable|null $staff
-     * @param array $signers
+     * @param Authenticatable|null $staff Current authenticated user
+     * @param array $signers Signer rule configuration (permissions/roles/modes)
      * @param mixed $context Optional Step or Request context for initiator checks
+     * @return bool
      */
     public static function canSign(?Authenticatable $staff, array $signers, $context = null): bool
     {

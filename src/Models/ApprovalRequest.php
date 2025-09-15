@@ -8,7 +8,8 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 /**
  * ApprovalRequest is the top-level record for a guarded change.
  *
- * It stores approvable morph target, actor id, state, and payload snapshots.
+ * Stores approvable morph target, actor id, state, and payload snapshots
+ * for original and proposed values.
  */
 class ApprovalRequest extends Model
 {
@@ -22,13 +23,21 @@ class ApprovalRequest extends Model
         'meta' => 'array',
     ];
 
-    /** The target model associated with this request. */
+    /**
+     * Target model associated with this request.
+     *
+     * @return MorphTo
+     */
     public function approvable(): MorphTo
     {
         return $this->morphTo();
     }
 
-    /** Steps belonging to the request in ascending level order. */
+    /**
+     * Steps belonging to the request in ascending level order.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
     public function steps()
     {
         return $this->hasMany(ApprovalStep::class, 'request_id');

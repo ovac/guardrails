@@ -18,13 +18,21 @@ class ApprovalStep extends Model
         'meta' => 'array',
     ];
 
-    /** Parent request this step belongs to. */
+    /**
+     * Parent request this step belongs to.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
     public function request()
     {
         return $this->belongsTo(ApprovalRequest::class, 'request_id');
     }
 
-    /** Signatures recorded against this step. */
+    /**
+     * Signatures recorded against this step.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
     public function signatures()
     {
         return $this->hasMany(ApprovalSignature::class, 'step_id');

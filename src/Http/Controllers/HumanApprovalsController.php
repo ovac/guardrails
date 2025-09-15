@@ -8,6 +8,8 @@ use OVAC\Guardrails\Models\ApprovalStep;
 use OVAC\Guardrails\Support\SigningPolicy;
 
 /**
+ * Guardrails API controller.
+ *
  * @group Guardrails
  */
 class HumanApprovalsController extends Controller
@@ -25,6 +27,9 @@ class HumanApprovalsController extends Controller
      *
      * @queryParam per_page integer
      * Number of items per page. Default: 25. Example: 50
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
      */
     public function index(Request $request)
     {
@@ -60,6 +65,11 @@ class HumanApprovalsController extends Controller
      *
      * @bodyParam comment string
      * Optional reason/comment included with the approval. Example: Looks good.
+     *
+     * @param Request $request
+     * @param int $requestId Approval request identifier
+     * @param int $stepId Step identifier within the request
+     * @return \Illuminate\Http\JsonResponse
      */
     public function approveStep(Request $request, int $requestId, int $stepId)
     {

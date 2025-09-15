@@ -8,13 +8,30 @@ use Illuminate\Support\ServiceProvider;
  * GuardrailsServiceProvider boots routes, views, config and publishable assets
  * for the ovac/guardrails package when embedded in an application.
  */
+/**
+ * Laravel service provider for the ovac/guardrails package.
+ *
+ * - Registers and merges configuration
+ * - Boots routes, views and publishable resources
+ * - Optionally prints a one-time support message in console
+ */
 class GuardrailsServiceProvider extends ServiceProvider
 {
+    /**
+     * Register the package services.
+     *
+     * @return void
+     */
     public function register(): void
     {
         $this->mergeConfigFrom(__DIR__.'/../config/guardrails.php', 'guardrails');
     }
 
+    /**
+     * Bootstrap any application services provided by the package.
+     *
+     * @return void
+     */
     public function boot(): void
     {
         // One-time support message in console after install
@@ -65,6 +82,8 @@ class GuardrailsServiceProvider extends ServiceProvider
 
     /**
      * Print a one-time support message in console asking for a star/sponsorship.
+     *
+     * @return void
      */
     protected function maybeShowSupportMessage(): void
     {

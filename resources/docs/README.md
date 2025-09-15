@@ -24,6 +24,7 @@ Sections
 - Custom Controllers: resources/docs/custom-controllers.md
 - External Document Signing: resources/docs/external-signing.md
 - Ideas & Examples: resources/docs/ideas-and-examples.md
+- Email & SMS Verification: resources/docs/verification-examples.md
 - Database & Migrations: resources/docs/database.md
 - API Reference: resources/docs/api.md
 - UI & Assets: resources/docs/ui.md

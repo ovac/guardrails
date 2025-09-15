@@ -7,22 +7,10 @@ use OVAC\Guardrails\Contracts\FlowExtender;
 
 /**
  * Intercepts controller-level mutations and creates approval requests
- * when a change involves guarded attributes and an authenticated staff.
+ * when a change involves guarded attributes and an authenticated user.
  */
 class ControllerInterceptor
 {
-    /**
-     * Intercept a controller mutation and create an approval request when needed.
-     *
-     * Options:
-     * - event: string creating|updating|custom (default: updating)
-     * - only: array of attributes to watch (overrides model rules)
-     * - except: array of attributes to skip
-     * - flow: array custom steps definition (overrides model flow)
-     *
-     * Returns array:
-     * [ 'captured' => bool, 'request_id' => int|null, 'changes' => array ]
-     */
     /**
      * Intercept the given mutation payload for the provided model.
      *
@@ -33,7 +21,10 @@ class ControllerInterceptor
      * - flow: preset flow array (overrides model flow)
      * - extender: FlowExtender instance to build a flow
      *
-     * Returns [captured: bool, request_id: ?int, changes: array]
+     * @param object $model Eloquent-like model being mutated
+     * @param array $changes Proposed attribute changes
+     * @param array $options Interceptor options (event, only, except, flow, extender)
+     * @return array{captured:bool,request_id:int|null,changes:array}
      */
     public static function intercept($model, array $changes, array $options = []): array
     {

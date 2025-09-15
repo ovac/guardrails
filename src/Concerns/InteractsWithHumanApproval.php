@@ -15,6 +15,11 @@ trait InteractsWithHumanApproval
     /**
      * Controller-level helper to intercept a mutation for human approval.
      * No-op when disabled via config('guardrails.controller.enabled') or legacy key.
+     *
+     * @param object $model Eloquent-like model instance being mutated
+     * @param array $changes The proposed attribute changes (key => value)
+     * @param array $options Interceptor options (event, only, except, flow, extender)
+     * @return array{captured:bool,request_id:int|null,changes:array}
      */
     protected function humanApprovalIntercept($model, array $changes, array $options = []): array
     {
@@ -28,7 +33,13 @@ trait InteractsWithHumanApproval
         return ControllerInterceptor::intercept($model, $changes, $options);
     }
 
-    /** Determine if the authenticated user may bypass manual approvals. */
+    /**
+     * Determine if the authenticated user may bypass manual approvals.
+     *
+     * Implementors may override this to plug in bespoke bypass rules.
+     *
+     * @return bool
+     */
     protected function staffCanBypassApprovals(): bool
     {
         $staff = property_exists($this, 'staff') ? $this->staff : (property_exists($this, 'user') ? $this->user : \OVAC\Guardrails\Support\Auth::user());
