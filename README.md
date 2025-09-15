@@ -216,6 +216,7 @@ Highlights worth reading next:
 - [Email & SMS Verification](resources/docs/verification-examples.md)
 - [Ideas & Examples (10)](resources/docs/ideas-and-examples.md)
 - [Extending Models & Migrations](resources/docs/extending-models-and-migrations.md)
+- [Full Testing Guide](resources/docs/testing-full.md)
 
 ## How It Works (Data Flow)
 

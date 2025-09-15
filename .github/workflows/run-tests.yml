@@ -32,7 +32,7 @@ jobs:
 
       - name: Run tests with coverage
         run: |
-          ./vendor/bin/pest --coverage-clover=coverage.xml -q
+          composer test:ci
 
       - name: Upload coverage to Codecov
         if: success()
