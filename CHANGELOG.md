@@ -6,6 +6,8 @@ The format is based on Keep a Changelog and this project adheres to Semantic Ver
 
 ## [Unreleased]
 
+- Add comprehensive documentation (guides, references, patterns)
+
 ## [0.1.0] - 2025-09-15
 - Initial Laravel package skeleton
 - PSR-4 `src/` structure and auto-discovery provider

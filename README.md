@@ -43,9 +43,23 @@
 
 # Guardrails (ovac/guardrails)
 
-Guardrails is a drop‑in, human‑in‑the‑loop approval layer for Laravel management systems. It guards selected model changes and requires multi‑signature approvals with configurable thresholds and steps.
+Guardrails adds human‑in‑the‑loop approvals to your Laravel apps. Mark sensitive attributes, define who must sign, and Guardrails turns risky writes into multi‑signature approval flows — with a tiny API and a minimal review UI.
 
-## Install
+**Why Guardrails**
+
+- Bold changes need people: routes sensitive writes through multi‑step approvals.
+- Zero lock‑in: add a trait to models or intercept in controllers — your choice.
+- Fluent flows: any‑of/all‑of permissions and roles, initiator counting, thresholds.
+- Batteries included: API, migrations, minimal UI, publishable docs and config.
+- Runs where you are: PHP 8.1+, Laravel 10/11, plays nice with Spatie permissions.
+
+**At a Glance**
+
+- Guard models with `HumanGuarded` or call `humanApprovalIntercept()` in controllers.
+- Build flows with `FlowExtensionBuilder` (any‑of/all‑of, roles/permissions, steps).
+- Approvals are stored as requests → steps → signatures. When the last step passes, the change is applied automatically.
+
+## Quickstart
 
 Install via Composer:
 
@@ -76,86 +90,65 @@ php artisan vendor:publish --provider="OVAC\\Guardrails\\GuardrailsServiceProvid
 php artisan migrate
 ```
 
-## Configure
+## 60‑Second Example
 
-`config/guardrails.php`:
-
-- `route_prefix` (string): API prefix, default `staff/v1/guardrails`.
-- `page_prefix` (string): Web page prefix, default `staff/guardrails`.
-- `middleware` (array): API middleware stack.
-- `web_middleware` (array): Web route middleware stack.
-- `views.layout` (string|null): Parent layout for views.
-- `views.section` (string): Section name for content.
-- `permissions.view` (string): Ability required to list approvals.
-- `permissions.sign` (string): Ability required to sign/approve steps.
-
-## Usage
-
-Add the `HumanGuarded` trait to any model and declare rules:
+Guard a model and require a quick two‑man rule (initiator + one peer):
 
 ```php
 use OVAC\Guardrails\Concerns\HumanGuarded;
+use OVAC\Guardrails\Services\FlowExtensionBuilder as Flow;
 
-class EcurrencySetting extends Model {
+class EcurrencySetting extends Model
+{
     use HumanGuarded;
 
-    public function humanGuardAttributes(): array {
+    public function humanGuardAttributes(): array
+    {
         return ['buy_normal_rate','sell_normal_rate','visible'];
     }
 
-    public function humanApprovalFlow(array $dirty, string $event): array {
+    public function humanApprovalFlow(array $dirty, string $event): array
+    {
         return [
-            // Example: Require two approvals from staff with the same permission as the initiator, counting
-            // the initiator as one approval automatically (so only one more approval is needed).
-            \OVAC\Guardrails\Services\FlowExtensionBuilder::make()
-                ->permissions(['local_rates.manage'])
-                ->requireAnyPermissions() // allow any one of listed perms
-                ->samePermissionAsInitiator(true) // require overlap with initiator's perm
-                ->includeInitiator(true, true) // include + preapprove initiator
+            Flow::make()
+                ->permissionsAny(['local_rates.manage'])
+                ->includeInitiator(true, true)
                 ->toStep(2, 'Ops Review')
                 ->build(),
-
-            // Example: One of any two roles
-            [
-                'name' => 'Management',
-                'threshold' => 1,
-                'signers' => [
-                    'roles' => ['finance_manager','ops_manager'],
-                    'roles_mode' => 'any',
-                ],
-            ],
         ];
     }
 }
 ```
 
-Or intercept inside controllers without modifying models:
+Prefer controllers? Intercept without touching models:
 
 ```php
-use OVAC\Guardrails\Services\ControllerInterceptor;
-use OVAC\Guardrails\Services\FlowExtensionBuilder as Flow;
-
 $result = $this->humanApprovalIntercept($model, $changes, [
     'only' => ['status_id'],
-    'extender' => Flow::make()
-        ->permissionsAny(['orders.manage','orders.escalate']) // any-of
-        ->includeInitiator(true, true)
-        ->toStep(2, 'Ops')
+    'extender' => Flow::make()->permissionsAny(['orders.manage'])->toStep(2, 'Ops'),
 ]);
 ```
 
-## API
+## Why Teams Use It
 
-- `GET /{route_prefix}` — list pending approval requests with steps/signatures.
-- `POST /{route_prefix}/{request}/steps/{step}/approve` — approve a step.
+- Approval confidence for critical data while keeping code changes small.
+- Human‑readable flow rules with real‑world patterns (two‑man rule, peer review, escalation).
+- Works with your auth today — Spatie permissions if present, token abilities otherwise.
+
+## API (2 endpoints)
+
+- GET `/{route_prefix}` — list pending approval requests with steps/signatures.
+- POST `/{route_prefix}/{request}/steps/{step}/approve` — approve a step.
 
 ## UI
 
-Guardrails ships with a minimal page at `/{page_prefix}` that consumes the API. Publish and customize the blade view as needed.
+A minimal page at `/{page_prefix}` consumes the API for reviewers. Publish and customize the Blade view.
 
 ## Docs
 
-See `resources/docs` for idoc‑style documentation. When published, the files are copied into `docs/guardrails`.
+- Start here: resources/docs/README.md
+- Or publish locally: `php artisan vendor:publish --provider="OVAC\\Guardrails\\GuardrailsServiceProvider" --tag=guardrails-docs`
+  - Files will be copied into `docs/guardrails`.
 
 Search keywords: "laravel approval workflow", "laravel multi signature approvals", "human in the loop approvals", "laravel model guarded changes", "laravel approval steps thresholds", "spatie permissions approval flow", "controller intercept approvals", "two-man rule laravel".
 
