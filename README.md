@@ -98,22 +98,22 @@ Guard a model and require a quick two‑man rule (initiator + one peer):
 use OVAC\Guardrails\Concerns\HumanGuarded;
 use OVAC\Guardrails\Services\FlowExtensionBuilder as Flow;
 
-class EcurrencySetting extends Model
+class Post extends Model
 {
     use HumanGuarded;
 
     public function humanGuardAttributes(): array
     {
-        return ['buy_normal_rate','sell_normal_rate','visible'];
+        return ['published'];
     }
 
     public function humanApprovalFlow(array $dirty, string $event): array
     {
         return [
             Flow::make()
-                ->permissionsAny(['local_rates.manage'])
+                ->permissionsAny(['content.publish'])
                 ->includeInitiator(true, true)
-                ->toStep(2, 'Ops Review')
+                ->toStep(2, 'Editorial Review')
                 ->build(),
         ];
     }
@@ -123,9 +123,9 @@ class EcurrencySetting extends Model
 Prefer controllers? Intercept without touching models:
 
 ```php
-$result = $this->humanApprovalIntercept($model, $changes, [
-    'only' => ['status_id'],
-    'extender' => Flow::make()->permissionsAny(['orders.manage'])->toStep(2, 'Ops'),
+$result = $this->humanApprovalIntercept($post, ['published' => true], [
+    'only' => ['published'],
+    'extender' => Flow::make()->rolesAny(['editor','managing_editor'])->toStep(1, 'Editorial Approval'),
 ]);
 ```
 
@@ -134,6 +134,62 @@ $result = $this->humanApprovalIntercept($model, $changes, [
 - Approval confidence for critical data while keeping code changes small.
 - Human‑readable flow rules with real‑world patterns (two‑man rule, peer review, escalation).
 - Works with your auth today — Spatie permissions if present, token abilities otherwise.
+
+## Use Cases (with examples)
+
+1) Publish a blog post — one more editor must approve
+
+```php
+Flow::make()
+  ->permissionsAny(['content.publish'])    // any editor with publish permission
+  ->includeInitiator(true, true)            // author counts as one approval
+  ->toStep(2, 'Editorial Review')          // needs one more editor
+  ->build();
+```
+
+2) Delete a user account — two steps, different roles
+
+```php
+Flow::make()
+  ->rolesAny(['support_lead'])             // support lead approves first
+  ->toStep(1, 'Support Approval')
+  ->rolesAny(['security_officer'])         // then security approves
+  ->toStep(1, 'Security Approval')
+  ->build();
+```
+
+3) Refund an order — one of finance OR operations
+
+```php
+Flow::make()
+  ->rolesAny(['finance_manager','ops_manager'])
+  ->toStep(1, 'Management Approval')
+  ->build();
+```
+
+4) Sensitive setting change — peer with same permission must co‑sign
+
+```php
+Flow::make()
+  ->permissions(['settings.update'])       // list all required permissions
+  ->requireAnyPermissions()                // switch to any‑of
+  ->samePermissionAsInitiator(true)        // peer must share at least one
+  ->includeInitiator(true, true)           // initiator pre‑approved
+  ->toStep(2, 'Peer Review')
+  ->build();
+```
+
+5) Multi‑step escalation — ops first, then execs
+
+```php
+Flow::make()
+  ->permissionsAny(['ops.change'])
+  ->includeInitiator(true, true)
+  ->toStep(2, 'Ops Review')
+  ->rolesAny(['cto','cfo'])
+  ->toStep(1, 'Executive Sign‑off')
+  ->build();
+```
 
 ## API (2 endpoints)
 
