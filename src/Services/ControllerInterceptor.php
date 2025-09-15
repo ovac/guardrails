@@ -37,7 +37,7 @@ class ControllerInterceptor
      */
     public static function intercept($model, array $changes, array $options = []): array
     {
-        if (!auth('staff')->check()) {
+        if (!\OVAC\Guardrails\Support\Auth::check()) {
             return ['captured' => false, 'request_id' => null, 'changes' => $changes];
         }
 

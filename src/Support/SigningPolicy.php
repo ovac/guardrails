@@ -2,37 +2,25 @@
 
 namespace OVAC\Guardrails\Support;
 
-use App\Models\Staff;
+use Illuminate\Contracts\Auth\Authenticatable;
 
 /**
- * SigningPolicy evaluates whether a staff member is eligible to sign
- * a given step based on guard, permissions, roles, and initiator overlap.
+ * SigningPolicy evaluates whether a user is eligible to sign
+ * a given step based on permissions, roles, and initiator overlap.
  */
 class SigningPolicy
 {
     /**
-     * Determine if a staff can sign a given step based on step meta signers.
+     * Determine if a user can sign a given step based on step meta signers.
      * Supports any-of/all-of semantics and optional initiator overlap.
      *
-     * @param Staff|null $staff
+     * @param Authenticatable|null $staff
      * @param array $signers
      * @param mixed $context Optional Step or Request context for initiator checks
      */
-    /**
-     * Check if the given staff satisfies the signer rule.
-     *
-     * @param Staff|null $staff Current staff user
-     * @param array $signers Signer rule (guard, permissions/roles and modes)
-     * @param mixed $context Optional Step/Request providing initiator context
-     */
-    public static function canSign(?Staff $staff, array $signers, $context = null): bool
+    public static function canSign(?Authenticatable $staff, array $signers, $context = null): bool
     {
         if (!$staff) return false;
-
-        $guard = $signers['guard'] ?? 'staff';
-        if ($guard && $guard !== 'staff') {
-            return false;
-        }
 
         $hasSpatie = method_exists($staff, 'hasPermissionTo') && method_exists($staff, 'hasRole');
         $perms = (array) ($signers['permissions'] ?? []);
@@ -85,9 +73,9 @@ class SigningPolicy
             $initiator = null;
             if ($context && method_exists($context, 'request')) {
                 $initiatorId = optional($context->request)->actor_staff_id;
-                if ($initiatorId) $initiator = Staff::find($initiatorId);
+                if ($initiatorId) $initiator = Auth::findUserById($initiatorId);
             } elseif ($context && property_exists($context, 'actor_staff_id')) {
-                $initiator = Staff::find($context->actor_staff_id);
+                $initiator = Auth::findUserById($context->actor_staff_id);
             }
 
             if ($initiator) {

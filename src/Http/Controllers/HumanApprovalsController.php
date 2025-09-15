@@ -65,7 +65,8 @@ class HumanApprovalsController extends Controller
     {
         // Validate request inputs and identify current staff and step
         $request->validate(['comment' => 'nullable|string|max:1000']);
-        $staff = $request->user('staff');
+        $guard = \OVAC\Guardrails\Support\Auth::guardName();
+        $staff = $request->user($guard);
         $step = ApprovalStep::where('request_id', $requestId)->findOrFail($stepId);
 
         if ($step->status !== 'pending') {

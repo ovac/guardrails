@@ -25,8 +25,8 @@ trait HumanGuarded
         static::updating(function ($model) {
             $dirty = $model->getDirty();
 
-            // Skip if no staff or bypass flag
-            if (!auth('staff')->check()) {
+            // Skip if no authenticated user on the configured guard
+            if (!\OVAC\Guardrails\Support\Auth::check()) {
                 return true;
             }
 

@@ -13,9 +13,14 @@ Default config: `config/guardrails.php`
 
 ```php
 return [
+    // Auth guard representing approvers/reviewers
+    'auth' => [
+        'guard' => env('GUARDRAILS_AUTH_GUARD', 'staff'),
+    ],
     // API route prefix and middleware
     'route_prefix' => env('GUARDRAILS_ROUTE_PREFIX', 'staff/v1/guardrails'),
     'middleware' => [
+        // TIP: If you change the guard above, update this to match
         'api', 'auth:staff', 'idempotent', 'scope.staff.country',
     ],
 
@@ -51,6 +56,7 @@ return [
 
 Notes
 
+- auth.guard: The Laravel guard Guardrails uses to determine the authenticated approver. Routes default to using this guard if you don’t override middleware.
 - route_prefix: The base path for the JSON API; keep it namespaced under your staff/admin APIs.
 - middleware: Ensure your auth guard matches your staff guard.
 - page_prefix: The browser-facing page where reviewers can see pending requests.
@@ -58,4 +64,3 @@ Notes
 - permissions.view and permissions.sign: These are consulted by the routes and the UI. Map to your authorization layer (Spatie permissions recommended).
 - controller.enabled: Gate the controller helper so you can opt-out globally during development or certain environments.
 - support.*: Controls the one-time console message asking to star/sponsor.
-

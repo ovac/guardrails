@@ -2,7 +2,9 @@
 
 use Illuminate\Support\Facades\Route;
 
-$webMiddleware = (array) config('guardrails.web_middleware', ['web','auth:staff']);
+$guard = (string) config('guardrails.auth.guard', 'staff');
+$defaultWeb = ['web','auth:'.$guard];
+$webMiddleware = (array) (config('guardrails.web_middleware') ?? $defaultWeb);
 $pagePrefix = trim((string) config('guardrails.page_prefix', 'staff/guardrails'), '/');
 
 // Minimal blade UI that consumes the API

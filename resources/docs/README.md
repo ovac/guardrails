@@ -21,6 +21,9 @@ Sections
 - Bots & Automation: resources/docs/bots-and-automation.md
 - Auditing & Changelog: resources/docs/auditing-and-changelog.md
 - Config Recipes: resources/docs/config-recipes.md
+- Custom Controllers: resources/docs/custom-controllers.md
+- External Document Signing: resources/docs/external-signing.md
+- Ideas & Examples: resources/docs/ideas-and-examples.md
 - Database & Migrations: resources/docs/database.md
 - API Reference: resources/docs/api.md
 - UI & Assets: resources/docs/ui.md

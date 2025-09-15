@@ -3,6 +3,17 @@
 return [
     /*
     |--------------------------------------------------------------------------
+    | Authentication
+    |--------------------------------------------------------------------------
+    | Choose which Laravel auth guard represents your reviewers/approvers.
+    | Defaults to 'staff' but you can set to 'web', 'api', or any custom guard.
+    */
+    'auth' => [
+        'guard' => env('GUARDRAILS_AUTH_GUARD', 'staff'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | API Routes
     |--------------------------------------------------------------------------
     |

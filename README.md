@@ -212,6 +212,9 @@ Highlights worth reading next:
 - Advanced Flows (dynamic/risk‑based): resources/docs/advanced.md
 - Voting Models: resources/docs/voting-models.md
 - Auditing & Changelog: resources/docs/auditing-and-changelog.md
+- Custom Controllers: resources/docs/custom-controllers.md
+- External Signing (DocuSign/DocuSeal): resources/docs/external-signing.md
+- Ideas & Examples (10): resources/docs/ideas-and-examples.md
 
 Search keywords: "laravel approval workflow", "laravel multi signature approvals", "human in the loop approvals", "laravel model guarded changes", "laravel approval steps thresholds", "spatie permissions approval flow", "controller intercept approvals", "two-man rule laravel".
 

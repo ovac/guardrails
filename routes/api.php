@@ -4,7 +4,9 @@ use Illuminate\Support\Facades\Route;
 use \OVAC\Guardrails\Http\Controllers\HumanApprovalsController;
 
 $prefix = trim((string) config('guardrails.route_prefix', 'staff/v1/guardrails'), '/');
-$middleware = (array) config('guardrails.middleware', ['api','auth:staff']);
+$guard = (string) config('guardrails.auth.guard', 'staff');
+$defaultMiddleware = ['api','auth:'.$guard];
+$middleware = (array) (config('guardrails.middleware') ?? $defaultMiddleware);
 
 // JSON API routes for Guardrails approval endpoints
 Route::prefix($prefix)

@@ -28,10 +28,10 @@ trait InteractsWithHumanApproval
         return ControllerInterceptor::intercept($model, $changes, $options);
     }
 
-    /** Determine if the authenticated staff may bypass manual approvals. */
+    /** Determine if the authenticated user may bypass manual approvals. */
     protected function staffCanBypassApprovals(): bool
     {
-        $staff = property_exists($this, 'staff') ? $this->staff : auth('staff')->user();
+        $staff = property_exists($this, 'staff') ? $this->staff : (property_exists($this, 'user') ? $this->user : \OVAC\Guardrails\Support\Auth::user());
         if (!$staff) {
             return false;
         }

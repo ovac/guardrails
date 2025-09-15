@@ -27,7 +27,8 @@ class HumanApprovalService
         $request = new ApprovalRequest();
         $request->approvable_type = get_class($model);
         $request->approvable_id = method_exists($model, 'getKey') ? $model->getKey() : null;
-        $request->actor_staff_id = optional(auth('staff')->user())->id;
+        $actor = \OVAC\Guardrails\Support\Auth::user();
+        $request->actor_staff_id = optional($actor)->id;
         $request->state = 'pending';
         $request->new_data = $dirty;
         $request->original_data = $original;
@@ -65,7 +66,7 @@ class HumanApprovalService
             // Optionally pre-approve the initiator and count toward threshold
             $actorId = $request->actor_staff_id;
             if ($actorId && ($step->meta['include_initiator'] ?? false)) {
-                $actor = \App\Models\Staff::find($actorId);
+                // Use the actor from the auth guard resolved during this capture
                 $signers = (array) ($step->meta['signers'] ?? []);
                 if ($actor && SigningPolicy::canSign($actor, $signers, $step)) {
                     if ($step->meta['preapprove_initiator'] ?? true) {
