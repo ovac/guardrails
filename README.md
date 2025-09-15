@@ -206,6 +206,13 @@ A minimal page at `/{page_prefix}` consumes the API for reviewers. Publish and c
 - Or publish locally: `php artisan vendor:publish --provider="OVAC\\Guardrails\\GuardrailsServiceProvider" --tag=guardrails-docs`
   - Files will be copied into `docs/guardrails`.
 
+Highlights worth reading next:
+- Organization Playbook: resources/docs/organization-playbook.md
+- Use Cases: resources/docs/use-cases.md
+- Advanced Flows (dynamic/risk‑based): resources/docs/advanced.md
+- Voting Models: resources/docs/voting-models.md
+- Auditing & Changelog: resources/docs/auditing-and-changelog.md
+
 Search keywords: "laravel approval workflow", "laravel multi signature approvals", "human in the loop approvals", "laravel model guarded changes", "laravel approval steps thresholds", "spatie permissions approval flow", "controller intercept approvals", "two-man rule laravel".
 
 ## Support

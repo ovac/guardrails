@@ -14,10 +14,16 @@ Sections
 - Controller Interception Guide: resources/docs/usage-controllers.md
 - Flow Builder Reference: resources/docs/flow-builder.md
 - Common Patterns: resources/docs/patterns.md
+- Use Cases: resources/docs/use-cases.md
+- Organization Playbook: resources/docs/organization-playbook.md
+- Advanced Flows: resources/docs/advanced.md
+- Voting Models: resources/docs/voting-models.md
+- Bots & Automation: resources/docs/bots-and-automation.md
+- Auditing & Changelog: resources/docs/auditing-and-changelog.md
+- Config Recipes: resources/docs/config-recipes.md
 - Database & Migrations: resources/docs/database.md
 - API Reference: resources/docs/api.md
 - UI & Assets: resources/docs/ui.md
 - Permissions & Policies: resources/docs/permissions.md
 - Testing & Local Dev: resources/docs/testing.md
 - FAQ: resources/docs/faq.md
-

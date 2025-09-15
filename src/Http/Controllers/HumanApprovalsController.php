@@ -84,6 +84,12 @@ class HumanApprovalsController extends Controller
             ['decision' => 'approved', 'signed_at' => now(), 'comment' => $request->string('comment')]
         );
 
+        // Emit event for auditing/integrations
+        $signature = $step->signatures()->where('staff_id', $staff->id)->latest('id')->first();
+        if ($signature) {
+            event(new \\OVAC\\Guardrails\\Events\\ApprovalStepApproved($step, $signature));
+        }
+
         // If threshold met, complete step and possibly the entire request
         $count = $step->signatures()->where('decision', 'approved')->count();
         if ($count >= (int) $step->threshold) {
@@ -107,6 +113,9 @@ class HumanApprovalsController extends Controller
                     }
                     $model->save();
                 }
+
+                // Event hook when a request is fully approved
+                event(new \\OVAC\\Guardrails\\Events\\ApprovalRequestCompleted($req));
             }
         }
 

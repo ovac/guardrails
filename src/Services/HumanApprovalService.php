@@ -86,6 +86,9 @@ class HumanApprovalService
             }
         }
 
+        // Fire domain event for auditing/integrations
+        event(new \\OVAC\\Guardrails\\Events\\ApprovalRequestCaptured($request));
+
         return $request;
     }
 }
