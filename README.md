@@ -202,19 +202,66 @@ A minimal page at `/{page_prefix}` consumes the API for reviewers. Publish and c
 
 ## Docs
 
-- Start here: resources/docs/README.md
-- Or publish locally: `php artisan vendor:publish --provider="OVAC\\Guardrails\\GuardrailsServiceProvider" --tag=guardrails-docs`
-  - Files will be copied into `docs/guardrails`.
+- Start here: [Documentation Index](resources/docs/README.md)
+- Or publish locally: `php artisan vendor:publish --provider="OVAC\\Guardrails\\GuardrailsServiceProvider" --tag=guardrails-docs` (to `docs/guardrails`).
 
 Highlights worth reading next:
-- Organization Playbook: resources/docs/organization-playbook.md
-- Use Cases: resources/docs/use-cases.md
-- Advanced Flows (dynamic/risk‑based): resources/docs/advanced.md
-- Voting Models: resources/docs/voting-models.md
-- Auditing & Changelog: resources/docs/auditing-and-changelog.md
-- Custom Controllers: resources/docs/custom-controllers.md
-- External Signing (DocuSign/DocuSeal): resources/docs/external-signing.md
-- Ideas & Examples (10): resources/docs/ideas-and-examples.md
+- [Organization Playbook](resources/docs/organization-playbook.md)
+- [Use Cases](resources/docs/use-cases.md)
+- [Advanced Flows (dynamic/risk‑based)](resources/docs/advanced.md)
+- [Voting Models](resources/docs/voting-models.md)
+- [Auditing & Changelog](resources/docs/auditing-and-changelog.md)
+- [Custom Controllers](resources/docs/custom-controllers.md)
+- [External Signing (DocuSign/DocuSeal)](resources/docs/external-signing.md)
+- [Email & SMS Verification](resources/docs/verification-examples.md)
+- [Ideas & Examples (10)](resources/docs/ideas-and-examples.md)
+- [Extending Models & Migrations](resources/docs/extending-models-and-migrations.md)
+
+## How It Works (Data Flow)
+
+```mermaid
+flowchart LR
+  A[Your Code: Model Update or Controller] --> B{Guarded Attributes?}
+  B -- no --> Z[Apply Changes Immediately]
+  B -- yes --> C[Capture via HumanApprovalService]
+  C --> D[(DB: approval_requests)]
+  C --> E[(DB: approval_steps)]
+  D -->|events| H[ApprovalRequestCaptured]
+  E --> F[Reviewer Signs]
+  F --> G[(DB: approval_signatures)]
+  G --> I{Threshold Met?}
+  I -- no --> F
+  I -- yes --> J[Complete Step/Request]
+  J --> K[Apply Changes to Model]
+  J --> L[ApprovalRequestCompleted]
+```
+
+Keep approvals close to where changes happen (models) or intercept in controllers. Steps define who can sign and how many signatures you require.
+
+## Extending Migrations and Models
+
+- Add columns to the published migrations (e.g., reason, category, workspace_id) with a new migration; the package models use `$guarded = []`, so new attributes are writable.
+- If you need JSON casting or extra relations, create an app model that extends the package model:
+
+```php
+// app/Models/ApprovalRequest.php
+namespace App\Models;
+
+class ApprovalRequest extends \OVAC\Guardrails\Models\ApprovalRequest
+{
+    protected $casts = [
+        'meta' => 'array',
+        'reason' => 'string',
+    ];
+
+    public function workspace()
+    {
+        return $this->belongsTo(Workspace::class);
+    }
+}
+```
+
+Use events like `ApprovalRequestCaptured` to populate new columns or meta. See [Config Recipes](resources/docs/config-recipes.md) and [Auditing & Changelog](resources/docs/auditing-and-changelog.md).
 
 Search keywords: "laravel approval workflow", "laravel multi signature approvals", "human in the loop approvals", "laravel model guarded changes", "laravel approval steps thresholds", "spatie permissions approval flow", "controller intercept approvals", "two-man rule laravel".
 
