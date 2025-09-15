@@ -1,0 +1,59 @@
+{
+  "name": "ovac/guardrails",
+  "description": "Human-in-the-loop approvals for Laravel applications.",
+  "type": "library",
+  "license": "MIT",
+  "keywords": [
+    "laravel",
+    "approvals",
+    "workflow",
+    "human-in-the-loop",
+    "moderation",
+    "guardrails"
+  ],
+  "homepage": "https://github.com/ovac/guardrails",
+  "support": {
+    "issues": "https://github.com/ovac/guardrails/issues"
+  },
+  "require": {
+    "php": "^8.1",
+    "illuminate/support": "^10.0 || ^11.0"
+  },
+  "require-dev": {
+    "orchestra/testbench": "^8.0 || ^9.0",
+    "pestphp/pest": "^2.0",
+    "pestphp/pest-plugin-laravel": "^2.0",
+    "nunomaduro/collision": "^7.0 || ^8.0",
+    "laravel/pint": "^1.14",
+    "phpstan/phpstan": "^1.10"
+  },
+  "autoload": {
+    "psr-4": {
+      "OVAC\\Guardrails\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "OVAC\\Guardrails\\Tests\\": "tests/"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "OVAC\\Guardrails\\GuardrailsServiceProvider"
+      ]
+    }
+  },
+  "config": {
+    "sort-packages": true
+  },
+  "scripts": {
+    "test": "pest -q",
+    "test:coverage": "pest --coverage --min=0",
+    "stan": "phpstan analyse",
+    "lint": "pint --test",
+    "format": "pint"
+  },
+  "minimum-stability": "stable",
+  "prefer-stable": true
+}

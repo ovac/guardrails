@@ -1,0 +1,8 @@
+parameters:
+  level: 5
+  paths:
+    - src
+  checkMissingIterableValueType: false
+  ignoreErrors:
+    - '#Call to an undefined method Illuminate\\Contracts\\.*#'
+

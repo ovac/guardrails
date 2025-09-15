@@ -1,0 +1,8 @@
+{
+  "$schema": "https://laravel.github.io/pint/schema.json",
+  "preset": "laravel",
+  "rules": {
+    "ordered_imports": true
+  }
+}
+
