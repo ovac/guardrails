@@ -73,7 +73,7 @@ const config: Config = {
         src: 'img/logo.svg',
       },
       items: [
-        {to: '/docs/overview', label: 'Docs', position: 'left'},
+        {to: '/docs', label: 'Docs', position: 'left'},
         {to: '/playground', label: 'Playground', position: 'left'},
         {to: '/assistant', label: 'AI Assistant', position: 'left'},
         {
@@ -111,6 +111,7 @@ const config: Config = {
             {label: 'Changelog', to: '/docs/overview'},
             {label: 'Blog (coming soon)', to: '/docs/getting-started'},
             {label: 'Twitter', href: 'https://twitter.com/ovac4u'},
+            {label: 'Developer', href: 'https://github.com/ovac'},
           ],
         },
       ],

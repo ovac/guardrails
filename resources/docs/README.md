@@ -45,9 +45,10 @@ sequenceDiagram
   GR->>DB: Apply change when last step completes
   GR-->>App: Emit events (captured/approved/completed)
 ```
-- Database & Migrations: ./database.md
-- API Reference: ./api.md
-- UI & Assets: ./ui.md
-- Permissions & Policies: ./permissions.md
-- Testing & Local Dev: ./testing.md
-- FAQ: ./faq.md
+
+- [Database & Migrations](./database.md)
+- [API Reference](./api.md)
+- [UI & Assets](./ui.md)
+- [Permissions & Policies](./permissions.md)
+- [Testing & Local Dev](./testing.md)
+- [FAQ](./faq.md)
