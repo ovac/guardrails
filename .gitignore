@@ -17,3 +17,8 @@ composer.lock
 # Node
 node_modules/
 
+
+# Generated documentation bundles
+.docs-site-build/
+build/
+notes/ 

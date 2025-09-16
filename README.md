@@ -254,6 +254,17 @@ Use events like `ApprovalRequestCaptured` to populate new columns or meta. See [
 
 Search keywords: "laravel approval workflow", "laravel multi signature approvals", "human in the loop approvals", "laravel model guarded changes", "laravel approval steps thresholds", "spatie permissions approval flow", "controller intercept approvals", "two-man rule laravel".
 
+## Documentation Website
+
+Guardrails ships build scripts instead of doc sources so the Composer install stays slim. The GitHub Pages deployment uses `scripts/docs-site/build-docs-site.js` to assemble a Docusaurus bundle from `resources/docs` on demand.
+
+- Generate a local bundle with `node scripts/docs-site/build-docs-site.js ./build/docs-site` (requires Node 20+). When previewing locally, open `http://localhost:3000/guardrails/` after running `npx serve ./build/docs-site`. For a root-based preview, run `DOCS_BASE_URL=/ node scripts/docs-site/build-docs-site.js ./build/docs-site-local && npx serve ./build/docs-site-local`.
+- Configure optional environment variables (`DOCS_SITE_URL`, `DOCS_BASE_URL`, `DOCS_REPOSITORY_URL`, `DOCS_PACKAGIST_URL`) to tune canonical URLs and metadata. Defaults infer the correct GitHub Pages paths from the current repository.
+- The published site exposes `/playground` and `/assistant` routes for the interactive flow builder and BYO-key AI chat, both running entirely in the browser.
+- Tags that start with `v` automatically generate frozen documentation snapshots so visitors can browse historical releases.
+- `.github/workflows/docs-site.yml` runs on every push and tag, rebuilding the static site and deploying it to GitHub Pages (`gh-pages` branch).
+
+
 ## Support
 
 If this package saves you time, please consider:

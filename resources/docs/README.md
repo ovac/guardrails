@@ -7,25 +7,25 @@ Welcome to the Guardrails docs. This guide covers installation, configuration, h
 
 Sections
 
-- [Getting Started](resources/docs/getting-started.md)
-- [Concepts & Overview](resources/docs/overview.md)
-- [Configuration Reference](resources/docs/configuration.md)
-- [Model Guarding Guide](resources/docs/usage-models.md)
-- [Controller Interception Guide](resources/docs/usage-controllers.md)
-- [Flow Builder Reference](resources/docs/flow-builder.md)
-- [Common Patterns](resources/docs/patterns.md)
-- [Use Cases](resources/docs/use-cases.md)
-- [Organization Playbook](resources/docs/organization-playbook.md)
-- [Advanced Flows](resources/docs/advanced.md)
-- [Voting Models](resources/docs/voting-models.md)
-- [Bots & Automation](resources/docs/bots-and-automation.md)
-- [Auditing & Changelog](resources/docs/auditing-and-changelog.md)
-- [Config Recipes](resources/docs/config-recipes.md)
-- [Custom Controllers](resources/docs/custom-controllers.md)
-- [External Document Signing](resources/docs/external-signing.md)
-- [Email & SMS Verification](resources/docs/verification-examples.md)
-- [Ideas & Examples](resources/docs/ideas-and-examples.md)
-- [Extending Models & Migrations](resources/docs/extending-models-and-migrations.md)
+- [Getting Started](./getting-started.md)
+- [Concepts & Overview](./overview.md)
+- [Configuration Reference](./configuration.md)
+- [Model Guarding Guide](./usage-models.md)
+- [Controller Interception Guide](./usage-controllers.md)
+- [Flow Builder Reference](./flow-builder.md)
+- [Common Patterns](./patterns.md)
+- [Use Cases](./use-cases.md)
+- [Organization Playbook](./organization-playbook.md)
+- [Advanced Flows](./advanced.md)
+- [Voting Models](./voting-models.md)
+- [Bots & Automation](./bots-and-automation.md)
+- [Auditing & Changelog](./auditing-and-changelog.md)
+- [Config Recipes](./config-recipes.md)
+- [Custom Controllers](./custom-controllers.md)
+- [External Document Signing](./external-signing.md)
+- [Email & SMS Verification](./verification-examples.md)
+- [Ideas & Examples](./ideas-and-examples.md)
+- [Extending Models & Migrations](./extending-models-and-migrations.md)
 
 ## How It Works
 
@@ -45,9 +45,9 @@ sequenceDiagram
   GR->>DB: Apply change when last step completes
   GR-->>App: Emit events (captured/approved/completed)
 ```
-- Database & Migrations: resources/docs/database.md
-- API Reference: resources/docs/api.md
-- UI & Assets: resources/docs/ui.md
-- Permissions & Policies: resources/docs/permissions.md
-- Testing & Local Dev: resources/docs/testing.md
-- FAQ: resources/docs/faq.md
+- Database & Migrations: ./database.md
+- API Reference: ./api.md
+- UI & Assets: ./ui.md
+- Permissions & Policies: ./permissions.md
+- Testing & Local Dev: ./testing.md
+- FAQ: ./faq.md
