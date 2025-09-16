@@ -1,13 +1,9 @@
-<p align="center">
-  <a href="#"><img src="resources/assets/images/banner.svg" alt="OVAC Guardrails" width="100%"></a>
-</p>
+<h1 align="center">Guardrails (ovac/guardrails)</h1>
+
 <p align="center" style="border: 2px dotted #000000">
-    <a href="https://https://www.openapis.org/" target="_blank"><img src="https://res.cloudinary.com/ovac/image/upload/h_50/v1553976486/1_Qf94xFwde421J_ZSmdPJDw_soee3m.png" class="inline"></a>
-    <br/>
-    <a href="https://https://www.openapis.org/" target="_blank"><img src="https://res.cloudinary.com/ovac/image/upload/h_50/v1553975330/C2I2EFN2_400x400_qcuyop.jpg" class="inline"></a><a href="#" target="_blank"><img src="https://res.cloudinary.com/ovac/image/upload/h_120/v1506828786/logo-composer-transparent_zjgal0.png" class="inline"></a><a href="#" target="_blank"><img src="https://res.cloudinary.com/ovac/image/upload/h_50,w_60,c_fill/v1506832992/laravel-logo_atlvfw.png" class="inline"></a>
+    <a href="#" target="_blank"><img src="https://res.cloudinary.com/ovac/image/upload/h_50,w_60,c_fill/v1506832992/laravel-logo_atlvfw.png" class="inline"></a>
 </p>
 
-<!-- Minimal, high-signal badges only -->
 <p align="center">
   <!-- Installs/Downloads (Packagist) -->
   <a href="https://packagist.org/packages/ovac/guardrails"><img src="https://img.shields.io/packagist/dt/ovac/guardrails.svg" alt="Total Downloads"></a>
@@ -19,12 +15,8 @@
   <img alt="PHP" src="https://img.shields.io/badge/PHP-8.1%2B-777BB3?logo=php&logoColor=white">
   <!-- Laravel version -->
   <img alt="Laravel" src="https://img.shields.io/badge/Laravel-10%2F11-FF2D20?logo=laravel&logoColor=white">
-  
 </p>
 
-<p align="center">
-  <!-- Keeping only 5 essential badges above -->
-</p>
 
 ```md
               Follow me anywhere @ovac4u                         | GitHub
@@ -32,14 +24,13 @@
              |   ___   |.-----.--.--.---.-.----.|  |  |.--.--.   | Facboook
              |  |  _   ||  _  |  |  |  _  |  __||__    |  |  |   | Instagram
              |  |______||_____|\___/|___._|____|   |__||_____|   | Github + @ovac
-             |_________|                        www.ovac4u.com   | Facebook + @ovacposts
+             |_________|                        ovac.github.io   | Facebook + @ovacposts
 ```
 
 <br/>
 <br/>
 
-# Guardrails (ovac/guardrails)
-
+# Guardrails
 Guardrails adds human‑in‑the‑loop approvals to your Laravel apps. Mark sensitive attributes, define who must sign, and Guardrails turns risky writes into multi‑signature approval flows — with a tiny API and a minimal review UI.
 
 **Why Guardrails**
