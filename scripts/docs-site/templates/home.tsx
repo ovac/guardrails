@@ -32,7 +32,7 @@ export default function Home(): JSX.Element {
   return (
     <Layout
       title="Guardrails documentation"
-      description="Human-in-the-loop approvals for Laravel with interactive docs, playground, and AI co-pilot."
+      description="Operational approvals engine for Laravel with interactive docs, playground, and AI co-pilot."
     >
       <header className={clsx('hero hero--primary', styles.heroBanner)}>
         <div className="container">

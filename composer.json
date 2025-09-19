@@ -1,6 +1,6 @@
 {
   "name": "ovac/guardrails",
-  "description": "Human-in-the-loop approvals for Laravel applications.",
+  "description": "Operational approvals engine for Laravel applications.",
   "type": "library",
   "license": "MIT",
   "keywords": [

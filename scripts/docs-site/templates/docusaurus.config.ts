@@ -4,7 +4,7 @@ import dracula from 'prism-react-renderer/themes/dracula';
 
 const config: Config = {
   title: 'Guardrails',
-  tagline: 'Human-in-the-loop approvals for Laravel with zero lock-in.',
+  tagline: 'Operational approvals engine for Laravel with zero lock-in.',
   favicon: 'img/favicon.svg',
   url: '__SITE_URL__',
   baseUrl: '__BASE_URL__',
@@ -66,7 +66,7 @@ __DOCS_VERSION_CONFIG__
       theme: { light: 'neutral', dark: 'forest' },
     },
     metadata: [
-      {name: 'keywords', content: 'Laravel approvals, guardrails, human in the loop, approval workflows'},
+      {name: 'keywords', content: 'Laravel approvals, guardrails, operational approvals, approval workflows'},
       {name: 'author', content: 'Ovac'},
       {name: 'twitter:card', content: 'summary_large_image'},
       {name: 'twitter:site', content: '@ovac4u'},

@@ -32,56 +32,39 @@ Sections
 
 ```mermaid
 flowchart TD
-  %% 1. Interception
-  A["Mutation Attempt<br/>Model (Guardrail trait) or ControllerInterceptor"] --> B{Authenticated via<br/>Guardrails guard?}
+  A["Mutation attempt<br>(Model trait or ControllerInterceptor)"] --> B{"Guardrails active<br/> guardable attrs<br/> requires approval?"}
   B -- No --> IM["Apply change immediately"]
-  B -- Yes --> C["Collect dirty attributes<br/>and Guardrails context"]
-  C --> D{Guardable attributes<br/>after only/except?}
-  D -- No --> IM
-  D -- Yes --> E{Model requires approval?}
-  E -- No --> IM
-  E -- Yes --> F["GuardrailApprovalService::capture()"]
+  B -- Yes --> CAP["Capture approval request"]
 
-  %% 2. Capture & Storage
-  F --> G["Create ApprovalRequest<br/>with description/context"]
-  G --> H["Build steps from model flow<br/>or FlowBuilder override"]
-  H --> J["Persist guardrail_approval_steps<br/>and signer meta"]
-  J --> K{Initiator included<br/>and eligible?}
-  K -- Yes --> L["Auto-create approval signature"]
-  K -- No --> M["Await reviewers"]
-  L --> M
-  M --> N["Event: ApprovalRequestCaptured"]
+  CAP --> PS["Persist steps and signer meta"]
+  PS --> INI{"Initiator eligible?"}
+  INI -- Yes --> SIG["Auto-create initiator signature"]
+  INI -- No --> QUE["Queue for reviewers"]
+  SIG --> QUE
 
-  %% 3. Reviewer Experience
-  N --> O["Approvals API index<br/>filters requestRelatesToUser()"]
-  O --> P["Reviewer opens pending step"]
-  P --> Q{"SigningPolicy::canSign?"}
-  Q -- No --> R1[Return 403 - Ineligible signer]
-  Q -- Yes --> S{Decision}
+  QUE --> E1["Event: ApprovalRequestCaptured"]
+  E1 --> IDX["Review queue shows pending steps to eligible users"]
+  IDX --> OPEN["Reviewer opens step"]
+  OPEN --> CAN{"SigningPolicy allows signer?"}
+  CAN -- No --> IDX
+  CAN -- Yes --> DEC{Decision}
 
-  %% Approve Path
-  S -- Approve --> T["Record approval signature<br/>in guardrail_approval_signatures"]
-  T --> U["Event: ApprovalStepApproved"]
-  U --> V{Approval threshold met?}
-  V -- No --> O
-  V -- Yes --> W[Mark step completed]
-  W --> X{"More steps pending?"}
-  X -- Yes --> O
-  X -- No --> Y["Mark request state = approved"]
-  Y --> Z["Apply new_data to model<br/>via withoutGuardrail()"]
-  Z --> ZA["Event: ApprovalRequestCompleted"]
+  DEC -- Approve --> APPR["Record approval signature"]
+  APPR --> THR{"Approval threshold met?"}
+  THR -- No --> IDX
+  THR -- Yes --> STEP_OK["Mark step complete"]
+  STEP_OK --> MORE{"More steps pending?"}
+  MORE -- Yes --> NEXT["Move to next pending step"]
+  NEXT --> IDX
+  MORE -- No --> REQ_OK["Mark request approved"]
+  REQ_OK --> APPLY["Apply new_data via withoutGuardrail()"]
+  APPLY --> END_OK["Event: ApprovalRequestCompleted"]
 
-  %% Reject Path
-  S -- Reject --> BB["Record rejection signature"]
-  BB --> BC["Event: ApprovalStepRejected"]
-  BC --> BD{Rejection threshold met?}
-  BD -- No --> O
-  BD -- Yes --> BE[Mark step rejected]
-  BE --> BF[Mark request state = rejected]
-  BF --> BG["Event: ApprovalRequestRejected"]
-
-  %% Return path
-  R1 -.-> O
+  DEC -- Reject --> REJ["Record rejection signature"]
+  REJ --> RTHR{"Rejection threshold met?"}
+  RTHR -- No --> IDX
+  RTHR -- Yes --> REQ_REJ["Mark request rejected"]
+  REQ_REJ --> END_REJ["Event: ApprovalRequestRejected"]
 ```
 
 - [Database & Migrations](./database.md)

@@ -201,10 +201,11 @@ Flow::make()
   ->build();
 ```
 
-## API (2 endpoints)
+## API (3 endpoints)
 
 - GET `/{route_prefix}` — list pending approval requests with steps/signatures.
 - POST `/{route_prefix}/{request}/steps/{step}/approve` — approve a step.
+- POST `/{route_prefix}/{request}/steps/{step}/reject` — record a rejection signature.
 
 ## UI
 
@@ -231,58 +232,15 @@ Highlights worth reading next:
 ## How It Works (Data Flow)
 
 ```mermaid
-flowchart TB
-  flowchart TD
-  %% 1. Interception
-  A["Mutation Attempt<br/>Model (Guardrail trait) or ControllerInterceptor"] --> B{Authenticated via<br/>Guardrails guard?}
-  B -- No --> IM["Apply change immediately"]
-  B -- Yes --> C["Collect dirty attributes<br/>and Guardrails context"]
-  C --> D{Guardable attributes<br/>after only/except?}
-  D -- No --> IM
-  D -- Yes --> E{Model requires approval?}
-  E -- No --> IM
-  E -- Yes --> F["GuardrailApprovalService::capture()"]
-
-  %% 2. Capture & Storage
-  F --> G["Create ApprovalRequest<br/>with description/context"]
-  G --> H["Build steps from model flow<br/>or FlowBuilder override"]
-  H --> J["Persist guardrail_approval_steps<br/>and signer meta"]
-  J --> K{Initiator included<br/>and eligible?}
-  K -- Yes --> L["Auto-create approval signature"]
-  K -- No --> M["Await reviewers"]
-  L --> M
-  M --> N["Event: ApprovalRequestCaptured"]
-
-  %% 3. Reviewer Experience
-  N --> O["Approvals API index<br/>filters requestRelatesToUser()"]
-  O --> P["Reviewer opens pending step"]
-  P --> Q{"SigningPolicy::canSign?"}
-  Q -- No --> R1[Return 403 - Ineligible signer]
-  Q -- Yes --> S{Decision}
-
-  %% Approve Path
-  S -- Approve --> T["Record approval signature<br/>in guardrail_approval_signatures"]
-  T --> U["Event: ApprovalStepApproved"]
-  U --> V{Approval threshold met?}
-  V -- No --> O
-  V -- Yes --> W[Mark step completed]
-  W --> X{"More steps pending?"}
-  X -- Yes --> O
-  X -- No --> Y["Mark request state = approved"]
-  Y --> Z["Apply new_data to model<br/>via withoutGuardrail()"]
-  Z --> ZA["Event: ApprovalRequestCompleted"]
-
-  %% Reject Path
-  S -- Reject --> BB["Record rejection signature"]
-  BB --> BC["Event: ApprovalStepRejected"]
-  BC --> BD{Rejection threshold met?}
-  BD -- No --> O
-  BD -- Yes --> BE[Mark step rejected]
-  BE --> BF[Mark request state = rejected]
-  BF --> BG["Event: ApprovalRequestRejected"]
-
-  %% Return path
-  R1 -.-> O
+flowchart TD
+  Start[Change attempted] --> Guard{Guardrails guard?}
+  Guard -- No --> ApplyNow[Apply change immediately]
+  Guard -- Yes --> Capture[Capture request and steps]
+  Capture --> Review{Reviewer decision}
+  Review -- Approve --> Apply[Apply new data]
+  Review -- Reject --> Halt[Reject request]
+  Apply --> Done[Emit completion events]
+  Halt --> Done
 ```
 
 Keep approvals close to where changes happen (models) or intercept in controllers. Steps define who can sign and how many signatures you require.
