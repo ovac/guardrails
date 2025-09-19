@@ -28,6 +28,5 @@ composer update
 ## App Integration Tips
 
 - Use an in-memory sqlite database for speed.
-- Seed staff users with the appropriate permissions/roles for realistic flows.
+- Seed approver accounts with the appropriate permissions/roles for realistic flows.
 - Hit the HTTP routes with Testbench’s router to exercise the API end-to-end.
-

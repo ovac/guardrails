@@ -13,7 +13,7 @@ Two‑man rule to publish a blog post: author + any editor.
 Flow::make()
   ->anyOfPermissions(['content.publish'])
   ->includeInitiator(true, true)   // author pre‑approved
-  ->toStep(2, 'Editorial Review')  // needs one editor
+  ->signedBy(2, 'Editorial Review')  // needs one editor
   ->build();
 ```
 
@@ -26,8 +26,8 @@ Approve discounts based on depth: Sales lead under 20%, VP if 20%+.
 $depth = (int) $changes['discount_percent'];
 
 return $depth < 20
-  ? Flow::make()->anyOfRoles(['sales_lead'])->toStep(1, 'Sales Approval')->build()
-  : Flow::make()->anyOfRoles(['vp_sales'])->toStep(1, 'VP Approval')->build();
+  ? Flow::make()->anyOfRoles(['sales_lead'])->signedBy(1, 'Sales Approval')->build()
+  : Flow::make()->anyOfRoles(['vp_sales'])->signedBy(1, 'VP Approval')->build();
 ```
 
 ## Product Rollout (Product + Engineering)
@@ -37,9 +37,9 @@ Ops approves feature flag, then Engineering Lead approves rollout.
 ```php
 Flow::make()
   ->anyOfRoles(['ops_manager'])
-  ->toStep(1, 'Ops Gate')
+  ->signedBy(1, 'Ops Gate')
   ->anyOfRoles(['eng_lead'])
-  ->toStep(1, 'Engineering Gate')
+  ->signedBy(1, 'Engineering Gate')
   ->build();
 ```
 
@@ -50,7 +50,7 @@ Any of Legal OR Security must sign before publishing policy updates.
 ```php
 Flow::make()
   ->anyOfRoles(['legal_counsel','security_officer'])
-  ->toStep(1, 'Compliance Review')
+  ->signedBy(1, 'Compliance Review')
   ->build();
 ```
 
@@ -63,7 +63,7 @@ Flow::make()
   ->permissions(['payouts.approve'])
   ->requireAnyPermissions()        // count any of the listed perms
   ->includeInitiator(true, true)   // initiator counts
-  ->toStep(2, 'Finance Double‑Sign')
+  ->signedBy(2, 'Finance Double‑Sign')
   ->build();
 ```
 
@@ -74,7 +74,7 @@ Require 3 votes out of 5 architects.
 ```php
 Flow::make()
   ->anyOfRoles(['architect'])
-  ->toStep(3, 'Architecture Vote')
+  ->signedBy(3, 'Architecture Vote')
   ->build();
 ```
 
@@ -85,10 +85,10 @@ Ops must approve; if amount > 100k, add CFO.
 ```php
 $flow = Flow::make()
   ->anyOfPermissions(['ops.change'])
-  ->toStep(1, 'Ops');
+  ->signedBy(1, 'Ops');
 
 if (($changes['amount'] ?? 0) > 100000) {
-  $flow->anyOfRoles(['cfo'])->toStep(1, 'CFO');
+  $flow->anyOfRoles(['cfo'])->signedBy(1, 'CFO');
 }
 
 return $flow->build();

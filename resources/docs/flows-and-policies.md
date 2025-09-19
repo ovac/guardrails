@@ -16,13 +16,13 @@ use OVAC\\Guardrails\\Services\\Flow;
 // Any-of permissions
 Flow::make()
   ->anyOfPermissions(['orders.manage','orders.escalate'])
-  ->toStep(1, 'Ops')
+  ->signedBy(1, 'Ops')
   ->build();
 
 // All-of roles (default)
 Flow::make()
   ->roles(['ops_manager','finance_manager'])
-  ->toStep(1, 'Management')
+  ->signedBy(1, 'Management')
   ->build();
 ```
 
@@ -32,7 +32,7 @@ Flow::make()
 Flow::make()
   ->permissions(['local_rates.manage'])
   ->includeInitiator(true, true) // include and preapprove initiator
-  ->toStep(2, 'Ops Review') // only one other approval needed
+  ->signedBy(2, 'Ops Review') // only one other approval needed
   ->build();
 ```
 
@@ -43,7 +43,7 @@ Flow::make()
   ->permissions(['local_rates.manage'])
   ->requireAnyPermissions()
   ->samePermissionAsInitiator(true)
-  ->toStep(2, 'Peer Review')
+  ->signedBy(2, 'Peer Review')
   ->build();
 ```
 

@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration {
     public function up(): void
     {
-        Schema::table('human_approval_requests', function (Blueprint $table) {
+        Schema::table('guardrail_approval_requests', function (Blueprint $table) {
             $table->string('reason')->nullable()->after('state');
             $table->foreignId('workspace_id')->nullable()->index()->after('reason');
         });
@@ -26,7 +26,7 @@ return new class extends Migration {
 
     public function down(): void
     {
-        Schema::table('human_approval_requests', function (Blueprint $table) {
+        Schema::table('guardrail_approval_requests', function (Blueprint $table) {
             $table->dropColumn(['reason','workspace_id']);
         });
     }
@@ -78,11 +78,11 @@ Event::listen(\OVAC\Guardrails\Events\ApprovalRequestCaptured::class, function (
 
 ## Add Indexes for Performance
 
-Consider indexing `state`, `actor_id`, and any new foreign keys to speed up dashboards:
+Consider indexing `state`, `initiator_id`, and any new foreign keys to speed up dashboards:
 
 ```php
-Schema::table('human_approval_requests', function (Blueprint $table) {
-    $table->index(['state','actor_id']);
+Schema::table('guardrail_approval_requests', function (Blueprint $table) {
+    $table->index(['state','initiator_id']);
 });
 ```
 

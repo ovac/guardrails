@@ -18,7 +18,7 @@
 }
 
 .heroSubtitle {
-  margin: 1rem auto 2rem auto;
+  margin: 1rem auto 2px auto;
   max-width: 640px;
   color: rgba(255, 255, 255, 0.84);
   font-size: 1.1rem;

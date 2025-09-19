@@ -13,39 +13,120 @@ Default config: `config/guardrails.php`
 
 ```php
 return [
-    // Auth guard representing approvers/reviewers
+    /*
+    |--------------------------------------------------------------------------
+    | Authentication
+    |--------------------------------------------------------------------------
+    | Choose which Laravel auth guard represents your reviewers/approvers.
+    | Defaults to your application's auth.defaults.guard (typically 'web').
+    */
     'auth' => [
-        'guard' => env('GUARDRAILS_AUTH_GUARD', 'staff'),
+        'guard' => env('GUARDRAILS_AUTH_GUARD', config('auth.defaults.guard', 'web')),
     ],
-    // API route prefix and middleware
-    'route_prefix' => env('GUARDRAILS_ROUTE_PREFIX', 'staff/v1/guardrails'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | API Routes
+    |--------------------------------------------------------------------------
+    |
+    | Configure the API endpoint under which Guardrails exposes its endpoints
+    | and the middleware stack protecting those routes.
+    |
+    */
+    'route_prefix' => env('GUARDRAILS_ROUTE_PREFIX', 'guardrails/api'),
+
+    /*
+    | The middleware stack for API routes.
+    */
     'middleware' => [
-        // TIP: If you change the guard above, update this to match
-        'api', 'auth:staff', 'idempotent', 'scope.staff.country',
+        'api', 'auth:'.env('GUARDRAILS_AUTH_GUARD', config('auth.defaults.guard', 'web')),
     ],
 
-    // Web page prefix and middleware
-    'page_prefix' => env('GUARDRAILS_PAGE_PREFIX', 'staff/guardrails'),
-    'web_middleware' => ['web', 'auth:staff'],
+    /*
+    |--------------------------------------------------------------------------
+    | Web Page
+    |--------------------------------------------------------------------------
+    |
+    | Configure the browser-facing page (a minimal UI bundled by the package)
+    | and the middleware stack protecting it.
+    |
+    */
+    'page_prefix' => env('GUARDRAILS_PAGE_PREFIX', 'guardrails'),
 
-    // Views
+    /*
+    | The middleware stack for the web page route.
+    */
+    'web_middleware' => ['web', 'auth:'.env('GUARDRAILS_AUTH_GUARD', config('auth.defaults.guard', 'web'))],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Views
+    |--------------------------------------------------------------------------
+    |
+    | You may optionally specify a layout name and the section where the
+    | bundled view should inject its content.
+    |
+    */
     'views' => [
+        // Parent layout view name, or null to render the standalone Guardrails UI
         'layout' => env('GUARDRAILS_LAYOUT', null),
+        // Section name inside the layout to yield content to
         'section' => env('GUARDRAILS_SECTION', 'content'),
     ],
 
-    // Permissions used by routes and UI actions
+    /*
+    |--------------------------------------------------------------------------
+    | Permissions
+    |--------------------------------------------------------------------------
+    |
+    | Abilities checked before viewing approval requests or signing steps.
+    | These should map to your authorization layer (e.g. Spatie permissions).
+    |
+    */
     'permissions' => [
+        // View the approvals dashboard or list via API
         'view' => 'approvals.manage',
+        // Approve or sign a step
         'sign' => 'approvals.manage',
     ],
 
-    // Controller helper toggle
+    /*
+    |--------------------------------------------------------------------------
+    | Signing Policy
+    |--------------------------------------------------------------------------
+    |
+    | Customize how Guardrails resolves role membership when evaluating signer
+    | rules. Provide a closure that receives the authenticated user and returns
+    | an array of role identifiers, or leave null to use built-in fallbacks.
+    |
+    */
+    'signing' => [
+        'resolve_roles_using' => null,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Controller Interceptor
+    |--------------------------------------------------------------------------
+    |
+    | Toggle for the controller helper that routes mutations through Guardrails
+    | when enabled (see InteractsWithGuardrail trait).
+    |
+    */
     'controller' => [
         'enabled' => env('GUARDRAILS_CONTROLLER_ENABLED', true),
     ],
 
-    // Optional: one-time console support message
+    /*
+    |--------------------------------------------------------------------------
+    | Support & Sponsorship
+    |--------------------------------------------------------------------------
+    |
+    | When enabled, the package prints a short one-time message in the
+    | console after installation (first artisan run) asking users to star
+    | the repo or sponsor. You can disable this if undesired.
+    |
+    */
     'support' => [
         'motd' => env('GUARDRAILS_SUPPORT_MOTD', true),
         'github_repo' => 'ovac/guardrails',
@@ -56,11 +137,26 @@ return [
 
 Notes
 
-- auth.guard: The Laravel guard Guardrails uses to determine the authenticated approver. Routes default to using this guard if you don’t override middleware.
-- route_prefix: The base path for the JSON API; keep it namespaced under your staff/admin APIs.
-- middleware: Ensure your auth guard matches your staff guard.
-- page_prefix: The browser-facing page where reviewers can see pending requests.
-- views.layout and views.section: Provide a layout name if you want the bundled page to yield into an app layout.
-- permissions.view and permissions.sign: These are consulted by the routes and the UI. Map to your authorization layer (Spatie permissions recommended).
-- controller.enabled: Gate the controller helper so you can opt-out globally during development or certain environments.
-- support.*: Controls the one-time console message asking to star/sponsor.
+- `auth.guard`: Defaults to `auth.defaults.guard` (usually `web`). Set `GUARDRAILS_AUTH_GUARD` or edit the config if approvals should use another guard (e.g. `sanctum`, `api`).
+- `route_prefix`: Base path for the JSON API; adjust to match your application’s namespace.
+- `middleware`: Guardrails defaults to `['api','auth:{guard}`]. Replace or extend this array to match your middleware stack.
+- `page_prefix`: Browser-facing route for the review UI.
+- `views.layout` / `views.section`: Provide a layout if you want the bundled page to yield into your app shell. Leave `layout` `null` to serve the standalone UI, or keep it `null` and include `@include('guardrails::panel')` wherever you want the panel to appear inside your own view.
+- `permissions.view` and `permissions.sign`: Abilities consulted by the routes and UI (map to your policy layer).
+- `signing.resolve_roles_using`: Supply a closure if you need to resolve roles from a custom source (see [Signing Policy Reference](./signing-policy.md)).
+
+## Authentication helper
+
+Guardrails ships a small helper (`OVAC\\Guardrails\\Support\\Auth`) that centralizes guard resolution:
+
+- `Auth::guardName()` returns the configured guard, falling back to `auth.defaults.guard` or `web`.
+- `Auth::guard()` resolves the framework guard instance.
+- `Auth::user()` / `Auth::check()` mirror Laravel’s helpers but respect the Guardrails configuration.
+- `Auth::providerModelClass()` and `Auth::findUserById()` resolve users via the guard’s provider, handling both Eloquent models and custom classes.
+
+You can rely on these helpers when writing custom integrations (policies, events) so your code stays in sync with the guard Guardrails uses.
+
+Additional options:
+
+- `controller.enabled`: Gate the controller helper so you can opt-out globally during development or certain environments.
+- `support.*`: Controls the one-time console message asking teams to star or sponsor the package.

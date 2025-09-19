@@ -3,11 +3,11 @@ description: Using service accounts, webhooks, and chatops with Guardrails.
 
 # Bots & Automation
 
-Bots can open approval requests (as initiators) or receive events to notify teams. Guardrails stores the `actor_id`, so consider creating a service account user for your bot.
+Bots can open approval requests (as initiators) or receive events to notify teams. Guardrails stores the `initiator_id`, so consider creating a service account user for your bot.
 
 ## Service Accounts as Initiators
 
-Use a dedicated `staff` user (e.g., `automation@yourco`) and authenticate via a token with scoped abilities. Changes captured while authenticated as this user will record them as the initiator.
+Use a dedicated service account user (e.g., `automation@yourco`) and authenticate via a token with scoped abilities. Changes captured while authenticated as this user will record them as the initiator.
 
 ## Event-Driven Integrations
 
@@ -15,7 +15,9 @@ Guardrails fires domain events you can listen to:
 
 - `OVAC\\Guardrails\\Events\\ApprovalRequestCaptured`
 - `OVAC\\Guardrails\\Events\\ApprovalStepApproved`
+- `OVAC\\Guardrails\\Events\\ApprovalStepRejected`
 - `OVAC\\Guardrails\\Events\\ApprovalRequestCompleted`
+- `OVAC\\Guardrails\\Events\\ApprovalRequestRejected`
 
 ### Example: Send Slack notifications
 
@@ -32,12 +34,17 @@ Event::listen(\OVAC\Guardrails\Events\ApprovalRequestCompleted::class, function 
     Notification::route('slack', env('SLACK_WEBHOOK'))
         ->notify(new SlackApprovalPing('Request #'.$e->request->id.' approved.'));
 });
+
+Event::listen(\OVAC\Guardrails\Events\ApprovalRequestRejected::class, function ($e) {
+    Notification::route('slack', env('SLACK_WEBHOOK'))
+        ->notify(new SlackApprovalPing('Request #'.$e->request->id.' rejected at step '.$e->step->name.'. Comment: '.($e->signature->comment ?: '—')));
+});
 ```
 
 ## ChatOps Approvals
 
 - Expose a small endpoint your bot can call to POST the `approve` action with a signed token.
-- Or map bot identities to staff users and let them sign steps if they satisfy signer rules.
+- Or map bot identities to real approver accounts and let them sign steps if they satisfy signer rules.
 
 ## CI/CD & Commits
 

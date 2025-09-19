@@ -10,6 +10,94 @@ const repoRoot = path.resolve(__dirname, '..', '..');
 const docsSourceDir = path.join(repoRoot, 'resources', 'docs');
 const templatesDir = path.join(__dirname, 'templates');
 
+const baseSidebarDefinition = {
+  docs: [
+    {type: 'doc', id: 'README', label: 'Welcome'},
+    {
+      type: 'category',
+      label: 'Start Here',
+      collapsed: false,
+      items: ['overview', 'getting-started', 'configuration', 'faq'],
+    },
+    {
+      type: 'category',
+      label: 'Guarded Flows',
+      items: [
+        'usage-models',
+        'usage-controllers',
+        'flow-builder',
+        'flows-and-policies',
+        'signing-policy',
+        'permissions',
+        'patterns',
+        'use-cases',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Guides & Recipes',
+      items: [
+        'advanced',
+        'config-recipes',
+        'custom-controllers',
+        'extending-models-and-migrations',
+        'database',
+        'external-signing',
+        'verification-examples',
+        'bots-and-automation',
+        'organization-playbook',
+        'ideas-and-examples',
+        'ui',
+        'voting-models',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Operations & Reference',
+      items: ['api', 'auditing-and-changelog', 'testing', 'testing-full'],
+    },
+  ],
+};
+
+function humanizeSegment(segment) {
+  return segment
+    .replace(/-/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/\b\w/g, (match) => match.toUpperCase());
+}
+
+function humanizeDocId(value) {
+  if (!value) {
+    return value;
+  }
+
+  return value
+    .split('/')
+    .map((segment) => humanizeSegment(segment))
+    .join(' / ');
+}
+
+function extractTitleFromContent(content) {
+  if (!content) {
+    return null;
+  }
+
+  const normalized = content.replace(/\r\n?/g, '\n');
+
+  const titleField = normalized.match(/^title:\s*(.+)$/m);
+  if (titleField) {
+    return titleField[1].trim().replace(/^['"]|['"]$/g, '');
+  }
+
+  const heading = normalized.match(/^#\s+(.+)$/m);
+  if (heading) {
+    return heading[1].trim();
+  }
+
+  return null;
+}
+
 function renderTemplate(filename, variables = {}) {
   const templatePath = path.join(templatesDir, filename);
   const raw = fs.readFileSync(templatePath, 'utf8');
@@ -19,6 +107,74 @@ function renderTemplate(filename, variables = {}) {
     }
     return match;
   });
+}
+
+function serializeSidebar(sidebar) {
+  return JSON.stringify(sidebar, null, 2);
+}
+
+function cloneSidebar(sidebar) {
+  return JSON.parse(JSON.stringify(sidebar));
+}
+
+function buildSidebarForDocs(sidebar, docIds, options = {}) {
+  const clone = cloneSidebar(sidebar);
+  const docSet = docIds instanceof Set ? docIds : null;
+  const getTitle = typeof options.getTitle === 'function' ? options.getTitle : (id) => humanizeDocId(id);
+
+  function filterItems(items) {
+    const results = [];
+    for (const item of items) {
+      if (typeof item === 'string') {
+        if (!docSet || docSet.has(item)) {
+          results.push({type: 'doc', id: item, label: getTitle(item)});
+        }
+        continue;
+      }
+
+      if (!item || typeof item !== 'object') {
+        continue;
+      }
+
+      if (item.type === 'doc') {
+        if (item.id && (!docSet || docSet.has(item.id))) {
+          const resolved = {...item};
+          if (!resolved.label) {
+            resolved.label = getTitle(resolved.id);
+          }
+          results.push(resolved);
+        }
+        continue;
+      }
+
+      if (item.type === 'category' && Array.isArray(item.items)) {
+        const nested = filterItems(item.items);
+        if (nested.length > 0) {
+          results.push({...item, items: nested});
+        }
+        continue;
+      }
+
+      const fallback = {...item};
+      if (fallback.id && !fallback.label) {
+        fallback.label = getTitle(fallback.id);
+      }
+      results.push(fallback);
+    }
+
+    return results;
+  }
+
+  const filtered = {};
+  for (const [key, value] of Object.entries(clone)) {
+    if (Array.isArray(value)) {
+      filtered[key] = filterItems(value);
+    } else {
+      filtered[key] = value;
+    }
+  }
+
+  return filtered;
 }
 
 
@@ -121,6 +277,55 @@ function trimContent(value) {
     .slice(0, 1200);
 }
 
+function collectDocIdsFromPaths(paths) {
+  const ids = new Set();
+  paths.forEach((relativePath) => {
+    const normalized = relativePath.replace(/\\/g, '/');
+    const id = normalized.replace(/\.(mdx?)$/i, '');
+    ids.add(id);
+  });
+  return ids;
+}
+
+function gatherDocInfo(rootDir) {
+  const relativePaths = [];
+  const titleMap = new Map();
+
+  function walk(currentDir) {
+    for (const entry of fs.readdirSync(currentDir, {withFileTypes: true})) {
+      const fullPath = path.join(currentDir, entry.name);
+      if (entry.isDirectory()) {
+        walk(fullPath);
+        continue;
+      }
+
+      if (!/\.mdx?$/i.test(entry.name)) {
+        continue;
+      }
+
+      const relative = path.relative(rootDir, fullPath).replace(/\\/g, '/');
+      relativePaths.push(relative);
+      const id = relative.replace(/\.(mdx?)$/i, '');
+      try {
+        const raw = fs.readFileSync(fullPath, 'utf8');
+        const title = extractTitleFromContent(raw);
+        if (title) {
+          titleMap.set(id, title);
+        }
+      } catch (error) {
+        // Ignore unreadable files; fallback titles will be generated later.
+      }
+    }
+  }
+
+  walk(rootDir);
+
+  return {
+    relativePaths,
+    titles: titleMap,
+  };
+}
+
 function collectSections(rootDir) {
   const sections = [];
 
@@ -216,22 +421,24 @@ function prepareVersionedDocs(siteDir) {
     const docs = listing.split('\n').map((item) => item.trim()).filter(Boolean);
     const destinationDir = path.join(versionedDocsDir, `version-${version}`);
     ensureDir(destinationDir);
+    const relativePaths = [];
+    const titleMap = new Map();
     docs.forEach((docPath) => {
       const contents = runCapture(`git show ${tag}:${docPath}`);
       const relative = docPath.replace('resources/docs/', '');
       const outputPath = path.join(destinationDir, relative);
       writeFile(outputPath, contents);
+      relativePaths.push(relative);
+      const id = relative.replace(/\.(mdx?)$/i, '');
+      const title = extractTitleFromContent(contents) || humanizeDocId(id);
+      titleMap.set(id, title);
     });
     const sidebarPath = path.join(versionedSidebarsDir, `version-${version}-sidebars.json`);
-    const sidebarPayload = {
-      docs: [
-        {
-          type: 'autogenerated',
-          dirName: '.',
-        },
-      ],
-    };
-    writeFile(sidebarPath, JSON.stringify(sidebarPayload, null, 2));
+    const docIds = collectDocIdsFromPaths(relativePaths);
+    const versionedSidebar = buildSidebarForDocs(baseSidebarDefinition, docIds, {
+      getTitle: (id) => titleMap.get(id) || humanizeDocId(id),
+    });
+    writeFile(sidebarPath, serializeSidebar(versionedSidebar));
   });
 
   writeFile(path.join(siteDir, 'versions.json'), JSON.stringify(versions, null, 2));
@@ -253,9 +460,12 @@ function createSiteStructure(siteDir, options) {
     repoUrl,
     packagistUrl,
     canonicalUrl,
+    sidebarDefinition,
+    versions = [],
   } = options;
 
   const currentYear = new Date().getFullYear().toString();
+  const hasVersions = Array.isArray(versions) && versions.length > 0;
 
   const replacements = {
     SITE_URL: siteUrl,
@@ -266,6 +476,12 @@ function createSiteStructure(siteDir, options) {
     PACKAGIST_URL: packagistUrl,
     CANONICAL_URL: canonicalUrl,
     CURRENT_YEAR: currentYear,
+    NAVBAR_VERSION_ITEM: hasVersions
+      ? `        {\n          type: 'docsVersionDropdown',\n          position: 'right',\n          dropdownActiveClassDisabled: true,\n        },\n`
+      : '',
+    DOCS_VERSION_CONFIG: hasVersions
+      ? `          versions: {\n            current: {\n              label: 'Next',\n            },\n          },\n          lastVersion: '${versions[0]}',\n`
+      : '',
   };
 
   const files = new Map([
@@ -286,14 +502,17 @@ function createSiteStructure(siteDir, options) {
   ]);
 
   for (const [templateName, outputPath] of files.entries()) {
-    const contents = renderTemplate(templateName, replacements);
+    const extras = templateName === 'sidebars.ts'
+      ? {SIDEBAR_JSON: serializeSidebar(sidebarDefinition || baseSidebarDefinition)}
+      : {};
+    const contents = renderTemplate(templateName, {...replacements, ...extras});
     writeFile(path.join(siteDir, outputPath), contents);
   }
 }
 
 function main() {
   const repository = process.env.GITHUB_REPOSITORY || 'ovac/guardrails';
-  const [organizationName = 'guardrails', projectName = 'guardrails'] = repository.split('/');
+  const [organizationName = 'ovac', projectName = 'guardrails'] = repository.split('/');
 
   const defaultSiteUrl = `https://${organizationName}.github.io`;
   const siteUrl = (process.env.DOCS_SITE_URL || defaultSiteUrl).replace(/\/$/, '');
@@ -316,6 +535,12 @@ function main() {
   const siteDir = path.join(tmpDir, 'site');
   ensureDir(siteDir);
 
+  const currentDocsInfo = gatherDocInfo(docsSourceDir);
+  const currentDocIds = collectDocIdsFromPaths(currentDocsInfo.relativePaths);
+  const sidebarForCurrent = buildSidebarForDocs(baseSidebarDefinition, currentDocIds, {
+    getTitle: (id) => currentDocsInfo.titles.get(id) || humanizeDocId(id),
+  });
+
   // Copy docs into site
   copyRecursive(docsSourceDir, path.join(siteDir, 'docs'));
   sanitizeDocs(path.join(siteDir, 'docs'));
@@ -335,6 +560,8 @@ function main() {
     repoUrl,
     packagistUrl,
     canonicalUrl,
+    sidebarDefinition: sidebarForCurrent,
+    versions,
   });
 
   // Run npm install/build inside the generated site

@@ -12,7 +12,7 @@ tags: [patterns, recipes, approvals]
 Flow::make()
   ->anyOfPermissions(['orders.manage'])
   ->includeInitiator(true, true)
-  ->toStep(2, 'Ops Two-Man')
+  ->signedBy(2, 'Ops Two-Man')
   ->build();
 ```
 
@@ -21,7 +21,7 @@ Flow::make()
 ```php
 Flow::make()
   ->anyOfRoles(['finance_manager','ops_manager'])
-  ->toStep(1, 'Management')
+  ->signedBy(1, 'Management')
   ->build();
 ```
 
@@ -31,9 +31,9 @@ Flow::make()
 Flow::make()
   ->anyOfPermissions(['local_rates.manage'])
   ->includeInitiator(true, true)
-  ->toStep(2, 'Ops')
+  ->signedBy(2, 'Ops')
   ->anyOfRoles(['finance_manager','ops_manager'])
-  ->toStep(1, 'Management')
+  ->signedBy(1, 'Management')
   ->build();
 ```
 
@@ -42,8 +42,16 @@ Flow::make()
 ```php
 $changes = $request->validate(['status_id' => 'integer']);
 
-$result = $this->actorApprovalIntercept($model, $changes, [
+$result = $this->guardrailIntercept($model, $changes, [
+  'description' => 'Escalate order status overrides to operations.',
   'only' => ['status_id'],
-  'extender' => Flow::make()->anyOfPermissions(['orders.manage','orders.escalate'])->toStep(2, 'Ops'),
+  'extender' => Flow::make()->anyOfPermissions(['orders.manage','orders.escalate'])->signedBy(2, 'Ops'),
 ]);
 ```
+
+## Related Guides
+
+- [Model Guarding Guide](./usage-models.md) — Implement these recipes on your Eloquent models.
+- [Controller Interception Guide](./usage-controllers.md) — Adapt patterns to request interception.
+- [Advanced Flows](./advanced.md) — Extend patterns with dynamic logic.
+- [Full Testing Guide](./testing-full.md) — Confirm each recipe behaves as expected.

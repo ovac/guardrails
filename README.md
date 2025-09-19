@@ -1,4 +1,13 @@
-<h1 align="center">Guardrails (ovac/guardrails)</h1>
+<h1 align="center">Guardrails</h1>
+
+```md
+              Follow me anywhere @ovac4u                         | GitHub
+              _________                          _________       | Twitter
+             |   ___   |.-----.--.--.---.-.----.|  |  |.--.--.   | Facebook
+             |  |  _   ||  _  |  |  |  _  |  __||__    |  |  |   | Instagram
+             |  |______||_____|\___/|___._|____|   |__||_____|   | Github + @ovac
+             |_________|                        ovac.github.io   | Facebook + @ovacposts
+```
 
 <p align="center" style="border: 2px dotted #000000">
     <a href="#" target="_blank"><img src="https://res.cloudinary.com/ovac/image/upload/h_50,w_60,c_fill/v1506832992/laravel-logo_atlvfw.png" class="inline"></a>
@@ -18,34 +27,24 @@
 </p>
 
 
-```md
-              Follow me anywhere @ovac4u                         | GitHub
-              _________                          _________       | Twitter
-             |   ___   |.-----.--.--.---.-.----.|  |  |.--.--.   | Facboook
-             |  |  _   ||  _  |  |  |  _  |  __||__    |  |  |   | Instagram
-             |  |______||_____|\___/|___._|____|   |__||_____|   | Github + @ovac
-             |_________|                        ovac.github.io   | Facebook + @ovacposts
-```
+## What is Guardrails?
 
-<br/>
-<br/>
+Guardrails is an operational approvals engine for Laravel. Capture every high‑risk change, route it through the right reviewers, and apply the update only after the required signatures land. You decide which attributes are guarded, who can approve, and how many voices it takes to ship a change.
 
-# Guardrails
-Guardrails adds human‑in‑the‑loop approvals to your Laravel apps. Mark sensitive attributes, define who must sign, and Guardrails turns risky writes into multi‑signature approval flows — with a tiny API and a minimal review UI.
+### Why teams reach for Guardrails
 
-**Why Guardrails**
+- **Protect critical workflows** – turn dangerous writes into reviewable approval requests without rewriting business logic.
+- **Model or controller first** – opt in with an Eloquent trait or intercept at the edge of your HTTP layer.
+- **Fluent, composable flows** – stack steps, mix roles and permissions, count initiators, and codify escalation in code.
+- **Complete toolkit** – ships with migrations, API routes, reviewer UI, and exhaustive docs so you can go live quickly.
+- **Laravel-native** – PHP 8.1+, Laravel 10/11, works with Spatie permissions or Sanctum token abilities out of the box.
 
-- Bold changes need people: routes sensitive writes through multi‑step approvals.
-- Zero lock‑in: add a trait to models or intercept in controllers — your choice.
-- Fluent flows: any‑of/all‑of permissions and roles, initiator counting, thresholds.
-- Batteries included: API, migrations, minimal UI, publishable docs and config.
-- Runs where you are: PHP 8.1+, Laravel 10/11, plays nice with Spatie permissions.
+### How it fits together
 
-**At a Glance**
-
-- Guard models with `ActorGuarded` or call `actorApprovalIntercept()` in controllers.
-- Build flows with `FlowExtensionBuilder` (any‑of/all‑of, roles/permissions, steps).
-- Approvals are stored as requests → steps → signatures. When the last step passes, the change is applied automatically.
+1. Mark attributes as guarded or intercept controller payloads.
+2. Use `Flow::make()` / `FlowBuilder` to describe who can sign each step.
+3. Guardrails persists the request (`requests → steps → signatures`) and emits events as people approve or reject.
+4. Once the final step meets its threshold, Guardrails applies the captured changes to your model for you.
 
 ## Quickstart
 
@@ -90,37 +89,53 @@ php artisan migrate
 Guard a model and require a quick two‑man rule (initiator + one peer):
 
 ```php
-use OVAC\Guardrails\Concerns\ActorGuarded;
+use OVAC\Guardrails\Concerns\Guardrail;
 use OVAC\Guardrails\Services\Flow;
 
 class Post extends Model
 {
-    use ActorGuarded;
+    use Guardrail;
 
-    public function humanGuardAttributes(): array
+    public function guardrailAttributes(): array
     {
         return ['published'];
     }
 
-    public function actorApprovalFlow(array $dirty, string $event): array
+    public function guardrailApprovalDescription(array $dirty, string $event): string
+    {
+        return 'Publish flag changes require editorial approval.';
+    }
+
+    public function guardrailApprovalFlow(array $dirty, string $event): array
     {
         return [
             Flow::make()
                 ->anyOfPermissions(['content.publish'])
                 ->includeInitiator(true, true)
-                ->toStep(2, 'Editorial Review')
+                ->signedBy(2, 'Editorial Review')
                 ->build(),
         ];
     }
 }
 ```
 
+When the initiator supplies a justification (for example through a form field), pass it into the guardrails context before saving:
+
+```php
+$post->guardrails()
+    ->description($request->input('approval_description'))
+    ->meta(['reason_code' => $request->input('reason_code')]);
+
+$post->fill($request->validated())->save();
+```
+
 Prefer controllers? Intercept without touching models:
 
 ```php
-$result = $this->actorApprovalIntercept($post, ['published' => true], [
+$result = $this->guardrailIntercept($post, ['published' => true], [
+    'description' => 'Editorial approval required before publishing.',
     'only' => ['published'],
-    'extender' => Flow::make()->anyOfRoles(['editor','managing_editor'])->toStep(1, 'Editorial Approval'),
+    'extender' => Flow::make()->anyOfRoles(['editor','managing_editor'])->signedBy(1, 'Editorial Approval'),
 ]);
 ```
 
@@ -138,7 +153,7 @@ $result = $this->actorApprovalIntercept($post, ['published' => true], [
 Flow::make()
   ->anyOfPermissions(['content.publish'])    // any editor with publish permission
   ->includeInitiator(true, true)            // author counts as one approval
-  ->toStep(2, 'Editorial Review')          // needs one more editor
+  ->signedBy(2, 'Editorial Review')          // needs one more editor
   ->build();
 ```
 
@@ -147,9 +162,9 @@ Flow::make()
 ```php
 Flow::make()
   ->anyOfRoles(['support_lead'])             // support lead approves first
-  ->toStep(1, 'Support Approval')
+  ->signedBy(1, 'Support Approval')
   ->anyOfRoles(['security_officer'])         // then security approves
-  ->toStep(1, 'Security Approval')
+  ->signedBy(1, 'Security Approval')
   ->build();
 ```
 
@@ -158,7 +173,7 @@ Flow::make()
 ```php
 Flow::make()
   ->anyOfRoles(['finance_manager','ops_manager'])
-  ->toStep(1, 'Management Approval')
+  ->signedBy(1, 'Management Approval')
   ->build();
 ```
 
@@ -170,7 +185,7 @@ Flow::make()
   ->requireAnyPermissions()                // switch to any‑of
   ->samePermissionAsInitiator(true)        // peer must share at least one
   ->includeInitiator(true, true)           // initiator pre‑approved
-  ->toStep(2, 'Peer Review')
+  ->signedBy(2, 'Peer Review')
   ->build();
 ```
 
@@ -180,9 +195,9 @@ Flow::make()
 Flow::make()
   ->anyOfPermissions(['ops.change'])
   ->includeInitiator(true, true)
-  ->toStep(2, 'Ops Review')
+  ->signedBy(2, 'Ops Review')
   ->anyOfRoles(['cto','cfo'])
-  ->toStep(1, 'Executive Sign‑off')
+  ->signedBy(1, 'Executive Sign‑off')
   ->build();
 ```
 
@@ -216,20 +231,58 @@ Highlights worth reading next:
 ## How It Works (Data Flow)
 
 ```mermaid
-flowchart LR
-  A[Your Code: Model Update or Controller] --> B{Guarded Attributes?}
-  B -- no --> Z[Apply Changes Immediately]
-  B -- yes --> C[Capture via ActorApprovalService]
-  C --> D[(DB: approval_requests)]
-  C --> E[(DB: approval_steps)]
-  D -->|events| H[ApprovalRequestCaptured]
-  E --> F[Reviewer Signs]
-  F --> G[(DB: approval_signatures)]
-  G --> I{Threshold Met?}
-  I -- no --> F
-  I -- yes --> J[Complete Step/Request]
-  J --> K[Apply Changes to Model]
-  J --> L[ApprovalRequestCompleted]
+flowchart TB
+  flowchart TD
+  %% 1. Interception
+  A["Mutation Attempt<br/>Model (Guardrail trait) or ControllerInterceptor"] --> B{Authenticated via<br/>Guardrails guard?}
+  B -- No --> IM["Apply change immediately"]
+  B -- Yes --> C["Collect dirty attributes<br/>and Guardrails context"]
+  C --> D{Guardable attributes<br/>after only/except?}
+  D -- No --> IM
+  D -- Yes --> E{Model requires approval?}
+  E -- No --> IM
+  E -- Yes --> F["GuardrailApprovalService::capture()"]
+
+  %% 2. Capture & Storage
+  F --> G["Create ApprovalRequest<br/>with description/context"]
+  G --> H["Build steps from model flow<br/>or FlowBuilder override"]
+  H --> J["Persist guardrail_approval_steps<br/>and signer meta"]
+  J --> K{Initiator included<br/>and eligible?}
+  K -- Yes --> L["Auto-create approval signature"]
+  K -- No --> M["Await reviewers"]
+  L --> M
+  M --> N["Event: ApprovalRequestCaptured"]
+
+  %% 3. Reviewer Experience
+  N --> O["Approvals API index<br/>filters requestRelatesToUser()"]
+  O --> P["Reviewer opens pending step"]
+  P --> Q{"SigningPolicy::canSign?"}
+  Q -- No --> R1[Return 403 - Ineligible signer]
+  Q -- Yes --> S{Decision}
+
+  %% Approve Path
+  S -- Approve --> T["Record approval signature<br/>in guardrail_approval_signatures"]
+  T --> U["Event: ApprovalStepApproved"]
+  U --> V{Approval threshold met?}
+  V -- No --> O
+  V -- Yes --> W[Mark step completed]
+  W --> X{"More steps pending?"}
+  X -- Yes --> O
+  X -- No --> Y["Mark request state = approved"]
+  Y --> Z["Apply new_data to model<br/>via withoutGuardrail()"]
+  Z --> ZA["Event: ApprovalRequestCompleted"]
+
+  %% Reject Path
+  S -- Reject --> BB["Record rejection signature"]
+  BB --> BC["Event: ApprovalStepRejected"]
+  BC --> BD{Rejection threshold met?}
+  BD -- No --> O
+  BD -- Yes --> BE[Mark step rejected]
+  BE --> BF[Mark request state = rejected]
+  BF --> BG["Event: ApprovalRequestRejected"]
+
+  %% Return path
+  R1 -.-> O
 ```
 
 Keep approvals close to where changes happen (models) or intercept in controllers. Steps define who can sign and how many signatures you require.
@@ -270,6 +323,23 @@ Guardrails ships build scripts instead of doc sources so the Composer install st
 - The published site exposes `/playground` and `/assistant` routes for the interactive flow builder and BYO-key AI chat, both running entirely in the browser.
 - Tags that start with `v` automatically generate frozen documentation snapshots so visitors can browse historical releases.
 - `.github/workflows/docs-site.yml` runs on every push and tag, rebuilding the static site and deploying it to GitHub Pages (`gh-pages` branch).
+
+## Tests & Coverage
+
+Run the full suite with Pest (quiet mode by default):
+
+```bash
+composer test
+```
+
+Generate coverage locally when you need instrumentation or Clover output for CI:
+
+```bash
+composer test:coverage
+composer test:ci # emits coverage.xml
+```
+
+See the [Full Testing Guide](resources/docs/testing-full.md) for environment setup, Laravel Testbench tips, and additional testing recipes.
 
 
 ## Support

@@ -50,7 +50,7 @@ class ApproveByEmailController
         abort_unless(SigningPolicy::canSign($user, (array) ($step->meta['signers'] ?? []), $step), 403);
 
         ApprovalSignature::updateOrCreate(
-            ['step_id' => $step->id, 'staff_id' => $user->id],
+            ['step_id' => $step->id, 'signer_id' => $user->id],
             ['decision' => 'approved', 'signed_at' => now(), 'comment' => 'Email link']
         );
 
@@ -84,7 +84,7 @@ class SmsApproveController
     {
         $code = random_int(100000, 999999);
         // Store code in signature meta (create a pending row)
-        $sig = ApprovalSignature::firstOrCreate(['step_id' => $step->id, 'staff_id' => $user->id]);
+        $sig = ApprovalSignature::firstOrCreate(['step_id' => $step->id, 'signer_id' => $user->id]);
         $meta = $sig->meta ?? [];
         $meta['otp'] = ['code' => (string) $code, 'expires_at' => now()->addMinutes(10)->toISOString()];
         $sig->meta = $meta; $sig->save();
@@ -106,7 +106,7 @@ class SmsApproveController
 
         abort_unless(SigningPolicy::canSign($user, (array) ($step->meta['signers'] ?? []), $step), 403);
 
-        $sig = ApprovalSignature::firstOrCreate(['step_id' => $step->id, 'staff_id' => $user->id]);
+        $sig = ApprovalSignature::firstOrCreate(['step_id' => $step->id, 'signer_id' => $user->id]);
         $meta = $sig->meta ?? [];
         $otp = (array) ($meta['otp'] ?? []);
         abort_unless(!empty($otp) && hash_equals((string) $otp['code'], (string) $request->string('code')), 422, 'Invalid code');
@@ -123,4 +123,3 @@ class SmsApproveController
 ```
 
 These verification patterns can coexist with role/permission rules: the policy still ensures only eligible users can approve.
-

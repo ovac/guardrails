@@ -14,6 +14,8 @@ const config: Config = {
   onBrokenMarkdownLinks: 'warn',
   trailingSlash: false,
   deploymentBranch: 'gh-pages',
+  themes: ['@docusaurus/theme-mermaid'],
+  markdown: { mermaid: true },
   i18n: {
     defaultLocale: 'en',
     locales: ['en'],
@@ -33,6 +35,7 @@ const config: Config = {
           editUrl: '__REPO_URL__/edit/main/resources/docs/',
           showLastUpdateTime: false,
           showLastUpdateAuthor: false,
+__DOCS_VERSION_CONFIG__
         },
         blog: false,
         theme: {
@@ -59,6 +62,9 @@ const config: Config = {
     ],
   ],
   themeConfig: {
+    mermaid: {
+      theme: { light: 'neutral', dark: 'forest' },
+    },
     metadata: [
       {name: 'keywords', content: 'Laravel approvals, guardrails, human in the loop, approval workflows'},
       {name: 'author', content: 'Ovac'},
@@ -76,6 +82,7 @@ const config: Config = {
         {to: '/docs', label: 'Docs', position: 'left'},
         {to: '/playground', label: 'Playground', position: 'left'},
         {to: '/assistant', label: 'AI Assistant', position: 'left'},
+__NAVBAR_VERSION_ITEM__
         {
           href: '__REPO_URL__',
           label: 'GitHub',

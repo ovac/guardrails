@@ -8,10 +8,17 @@ description: Practical configuration patterns and toggles.
 ```php
 // config/guardrails.php
 return [
-  'route_prefix' => env('GUARDRAILS_ROUTE_PREFIX', 'staff/v1/guardrails'),
-  'middleware' => ['api','auth:staff','throttle:60,1'],
-  'page_prefix' => env('GUARDRAILS_PAGE_PREFIX', 'staff/guardrails'),
-  'web_middleware' => ['web','auth:staff'],
+  'route_prefix' => env('GUARDRAILS_ROUTE_PREFIX', 'guardrails/api'),
+  'middleware' => [
+    'api',
+    'auth:'.env('GUARDRAILS_AUTH_GUARD', config('auth.defaults.guard', 'web')),
+    'throttle:60,1',
+  ],
+  'page_prefix' => env('GUARDRAILS_PAGE_PREFIX', 'guardrails'),
+  'web_middleware' => [
+    'web',
+    'auth:'.env('GUARDRAILS_AUTH_GUARD', config('auth.defaults.guard', 'web')),
+  ],
 ];
 ```
 
@@ -48,4 +55,3 @@ return [
   'motd' => env('GUARDRAILS_SUPPORT_MOTD', true),
 ],
 ```
-

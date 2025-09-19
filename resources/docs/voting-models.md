@@ -8,7 +8,7 @@ Guardrails supports threshold-based voting out of the box. Each step has a `thre
 ## Simple Majority
 
 ```php
-Flow::make()->anyOfRoles(['architect'])->toStep(3, 'Architecture Vote')->build();
+Flow::make()->anyOfRoles(['architect'])->signedBy(3, 'Architecture Vote')->build();
 ```
 
 ## Quorum + Majority (two steps)
@@ -16,9 +16,9 @@ Flow::make()->anyOfRoles(['architect'])->toStep(3, 'Architecture Vote')->build()
 ```php
 Flow::make()
   ->anyOfRoles(['architect'])
-  ->toStep(2, 'Quorum')            // at least 2 must sign
+  ->signedBy(2, 'Quorum')            // at least 2 must sign
   ->anyOfRoles(['architect'])
-  ->toStep(3, 'Majority')          // then total 3 approvals
+  ->signedBy(3, 'Majority')          // then total 3 approvals
   ->build();
 ```
 
@@ -27,11 +27,11 @@ Flow::make()
 ```php
 Flow::make()
   ->anyOfRoles(['eng_manager','design_manager'])
-  ->toStep(2, 'Eng+Design Vote')
+  ->signedBy(2, 'Eng+Design Vote')
   ->build();
 ```
 
 Notes
 
-- Each signature is stored with the `staff_id` and an optional `comment`.
+- Each signature is stored with the `signer_id` (approver user id) and an optional `comment`.
 - Initiator can be included/preapproved; set `includeInitiator(true, true)` on the builder or step meta.

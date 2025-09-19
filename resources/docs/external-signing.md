@@ -66,7 +66,7 @@ Route::post('/webhooks/doc-signing', function (Illuminate\Http\Request $request)
         // Approve on behalf of the signer; map provider identity to your user
         $user = App\Models\User::where('email', data_get($payload, 'signer.email'))->firstOrFail();
         \OVAC\Guardrails\Models\ApprovalSignature::updateOrCreate(
-            ['step_id' => $step->id, 'staff_id' => $user->id],
+            ['step_id' => $step->id, 'signer_id' => $user->id],
             ['decision' => 'approved', 'signed_at' => now(), 'comment' => 'Doc signed']
         );
     } else {
@@ -80,4 +80,3 @@ Route::post('/webhooks/doc-signing', function (Illuminate\Http\Request $request)
 ```
 
 This two-part integration lets the provider manage the legal signature while Guardrails manages the approval logic and data application.
-

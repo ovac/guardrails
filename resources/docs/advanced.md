@@ -3,12 +3,12 @@ description: Dynamic flows, risk scoring, conditional steps, and context-aware r
 
 # Advanced Flows
 
-Flows can be computed at runtime based on changes, actor, environment, or any business signal.
+Flows can be computed at runtime based on changes, initiator, environment, or any business signal.
 
 ## Risk-Based Thresholds
 
 ```php
-public function actorApprovalFlow(array $dirty, string $event): array
+public function guardrailApprovalFlow(array $dirty, string $event): array
 {
     $risk = 0;
     if (($dirty['amount'] ?? 0) > 100000) $risk += 2;
@@ -17,9 +17,9 @@ public function actorApprovalFlow(array $dirty, string $event): array
     $flow = Flow::make()->anyOfPermissions(['ops.change']);
 
     if ($risk >= 2) {
-        $flow->toStep(2, 'Ops (High Risk)')->anyOfRoles(['cfo'])->toStep(1, 'CFO');
+        $flow->signedBy(2, 'Ops (High Risk)')->anyOfRoles(['cfo'])->signedBy(1, 'CFO');
     } else {
-        $flow->toStep(1, 'Ops');
+        $flow->signedBy(1, 'Ops');
     }
 
     return $flow->build();
@@ -31,9 +31,10 @@ public function actorApprovalFlow(array $dirty, string $event): array
 Only guard some attributes; let others pass.
 
 ```php
-$result = $this->actorApprovalIntercept($model, $changes, [
+$result = $this->guardrailIntercept($model, $changes, [
+  'description' => 'Cross-functional review for public flags and pricing.',
   'only' => ['published','price','visibility'],
-  'extender' => Flow::make()->anyOfRoles(['editor','ops_manager'])->toStep(1, 'Review'),
+  'extender' => Flow::make()->anyOfRoles(['editor','ops_manager'])->signedBy(1, 'Review'),
 ]);
 ```
 
@@ -55,6 +56,13 @@ Flow::make()
   ->requireAnyPermissions()
   ->samePermissionAsInitiator(true)
   ->includeInitiator(true, true)
-  ->toStep(2, 'Peer Review')
+  ->signedBy(2, 'Peer Review')
   ->build();
 ```
+
+## Related Guides
+
+- [Model Guarding Guide](./usage-models.md) — Attach advanced flows directly to models.
+- [Controller Interception Guide](./usage-controllers.md) — Apply these patterns to inbound requests.
+- [Common Patterns](./patterns.md) — Browse ready-made flow snippets to adapt.
+- [Full Testing Guide](./testing-full.md) — Learn how to exercise complex policies in tests.

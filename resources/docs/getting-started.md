@@ -6,7 +6,7 @@ tags: [laravel, approvals, guardrails]
 
 # Getting Started
 
-Guardrails adds human‑in‑the‑loop approvals to your Laravel admin/ops apps.
+Guardrails plugs a human approval layer into your Laravel app so risky actions pause until the right people sign off.
 
 ## Install
 
@@ -34,8 +34,8 @@ php artisan vendor:publish --provider="OVAC\\Guardrails\\GuardrailsServiceProvid
 ## Configure
 
 Edit `config/guardrails.php` to set API prefixes, middleware, and policy names.
+Guardrails defaults to your app’s `auth.defaults.guard` (typically `web`). Set `GUARDRAILS_AUTH_GUARD` if approvals should use another guard such as `sanctum`.
 
 ## UI
 
-Visit `/{page_prefix}` (default `staff/guardrails`) for a minimal review UI.
-
+Visit `/{page_prefix}` (default `guardrails`) for a minimal review UI.

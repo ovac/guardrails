@@ -46,7 +46,7 @@ export default function Home(): JSX.Element {
             <Link className="button button--secondary button--lg" to="/docs/overview">
               Dive into the Docs
             </Link>
-            <Link className="button button--outline button--lg" to="/playground">
+            <Link className="button button--info button--lg" to="/playground">
               Build a Flow
             </Link>
             <Link className="button button--primary button--lg" to="/assistant">

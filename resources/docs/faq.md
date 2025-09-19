@@ -8,7 +8,7 @@ tags: [faq]
 
 ## What if the initiator doesn’t have the required permission?
 
-They won’t count and cannot sign. `includeInitiator(true, true)` only pre-approves when the initiator satisfies the signer rule. Otherwise, additional eligible staff must sign.
+They won’t count and cannot sign. `includeInitiator(true, true)` only pre-approves when the initiator satisfies the signer rule. Otherwise, additional eligible approvers must sign.
 
 ## Does “same-as-initiator” block when initiator lacks that permission?
 
@@ -17,4 +17,3 @@ Yes. The overlap is empty and no one satisfies the rule. Prefer `includeInitiato
 ## Can I use token abilities instead of Spatie permissions?
 
 Yes. Permissions are checked against token abilities when Spatie is unavailable. Role checks require Spatie.
-
