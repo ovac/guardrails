@@ -8,13 +8,13 @@
   {
     "id": "docs/README#guardrails-documentation",
     "title": "Guardrails Documentation",
-    "content": "Welcome to the Guardrails docs. This guide covers installation, configuration, how to guard models or intercept controllers, how to design approval flows, and how the database and UI fit together. Each section includes practical, copy‑paste examples. Sections - [Getting Started](./getting-started.md) - [Concepts & Overview](./overview.md) - [Configuration Reference](./configuration.md) - [Model Guarding Guide](./usage-models.md) - [Controller Interception Guide](./usage-controllers.md) - [Flow Builder Reference](./flow-builder.md) - [Common Patterns](./patterns.md) - [Use Cases](./use-cases.md) - [Organization Playbook](./organization-playbook.md) - [Advanced Flows](./advanced.md) - [Voting Models](./voting-models.md) - [Bots & Automation](./bots-and-automation.md) - [Auditing & Changelog](./auditing-and-changelog.md) - [Config Recipes](./config-recipes.md) - [Custom Controllers](./custom-controllers.md) - [External Document Signing](./external-signing.md) - [Email & SMS Verification](./verification-examples.md) - [Ideas & Examples](./ideas-and-examples.md) - [Extending Models & Migrations](./extending-models-and-migrations.md)",
+    "content": "Welcome to the Guardrails manual. Inside you’ll find everything you need to wire guarded attributes, design approval flows, expose the reviewer experience, and plug Guardrails into the rest of your Laravel stack – complete with practical copy‑paste examples. Sections - [Getting Started](./getting-started.md) - [Concepts & Overview](./overview.md) - [Configuration Reference](./configuration.md) - [Model Guarding Guide](./usage-models.md) - [Controller Interception Guide](./usage-controllers.md) - [Flow Builder Reference](./flow-builder.md) - [Signing Policy Reference](./signing-policy.md) - [Common Patterns](./patterns.md) - [Use Cases](./use-cases.md) - [Organization Playbook](./organization-playbook.md) - [Advanced Flows](./advanced.md) - [Voting Models](./voting-models.md) - [Bots & Automation](./bots-and-automation.md) - [Auditing & Changelog](./auditing-and-changelog.md) - [Config Recipes](./config-recipes.md) - [Custom Controllers](./custom-controllers.md) - [External Document Signing](./external-signing.md) - [Email & SMS Verification](./verification-examples.md) - [Ideas & Examples](./ideas-and-examples.md) - [Extending Models & Migrations](./extending-models-and-migrations.",
     "href": "/docs/README"
   },
   {
     "id": "docs/README#how-it-works",
     "title": "How It Works",
-    "content": "- Database & Migrations: ./database.md - API Reference: ./api.md - UI & Assets: ./ui.md - Permissions & Policies: ./permissions.md - Testing & Local Dev: ./testing.md - FAQ: ./faq.md",
+    "content": "- [Database & Migrations](./database.md) - [API Reference](./api.md) - [UI & Assets](./ui.md) - [Permissions & Policies](./permissions.md) - [Testing & Local Dev](./testing.md) - [FAQ](./faq.md) Key signals you can listen to: - `ApprovalRequestCaptured` when a request is created. - `ApprovalStepApproved` for every approval signature that gets recorded. - `ApprovalRequestCompleted` once the approval threshold is met and changes are applied. - `ApprovalStepRejected` for every rejection signature that gets recorded (check `step->status` for pending vs rejected). - `ApprovalRequestRejected` once the rejection threshold is met and the request is halted.",
     "href": "/docs/README"
   },
   {
@@ -26,7 +26,7 @@
   {
     "id": "docs/advanced#advanced-flows",
     "title": "Advanced Flows",
-    "content": "Flows can be computed at runtime based on changes, actor, environment, or any business signal.",
+    "content": "Flows can be computed at runtime based on changes, initiator, environment, or any business signal.",
     "href": "/docs/advanced"
   },
   {
@@ -42,15 +42,27 @@
     "href": "/docs/advanced"
   },
   {
+    "id": "docs/advanced#related-guides",
+    "title": "Related Guides",
+    "content": "- [Model Guarding Guide](./usage-models.md) — Attach advanced flows directly to models. - [Controller Interception Guide](./usage-controllers.md) — Apply these patterns to inbound requests. - [Common Patterns](./patterns.md) — Browse ready-made flow snippets to adapt. - [Full Testing Guide](./testing-full.md) — Learn how to exercise complex policies in tests.",
+    "href": "/docs/advanced"
+  },
+  {
     "id": "docs/api#get-routeprefix",
     "title": "GET /\\{route_prefix\\}",
-    "content": "List pending approval requests. Default prefix: `staff/v1/guardrails`. Query params: - `per_page`: integer, default 25, max 100.",
+    "content": "List pending approval requests visible to the authenticated user. Default prefix: `guardrails/api`. Notes: - Results are filtered server-side so users only see requests they initiated, have already signed, or are eligible to sign. - Each `steps` entry now includes signer metadata so UIs can show who qualifies: - `permissions_required` — array of permission strings configured for the step. - `permissions_mode` — `all` or `any` matching the flow configuration. - `roles_required` — array of role slugs that satisfy the step. - `roles_mode` — `all` or `any` for the associated roles. Query params: - `per_page`: integer, default 25, max 100.",
     "href": "/docs/api"
   },
   {
     "id": "docs/api#post-routeprefixrequeststepsstepapprove",
     "title": "POST /\\{route_prefix\\}/{request}/steps/{step}/approve",
-    "content": "Approve a step for the current staff user. Body params: - `comment`: optional string (max 1000). Auth & Policy: - Requires `auth:staff` and `approvals.manage` by default (configurable).",
+    "content": "Approve a step for the current authenticated user on the configured guard. Body params: - `comment`: optional string (max 1000). Auth & Policy: - Requires `auth:{guard}` where `{guard}` defaults to `auth.defaults.guard` (usually `web`) and the `guardrails.permissions.sign` ability. The user must satisfy the step’s signer policy (permissions/roles).",
+    "href": "/docs/api"
+  },
+  {
+    "id": "docs/api#post-routeprefixrequeststepsstepreject",
+    "title": "POST /\\{route_prefix\\}/{request}/steps/{step}/reject",
+    "content": "Record a rejection for the current step. Guardrails keeps the step pending until the configured rejection threshold is met (defaults to a simple majority of the approval threshold). Once the threshold is satisfied the step and request transition to `rejected`. Body params: - `comment`: optional string (max 1000) recorded on the rejection signature. Auth & Policy: - Same guard and ability requirements as the approve endpoint. The authenticated user must satisfy the signer policy for the step in order to reject it. Response body includes: - `rejected` — Boolean indicating whether the step transitioned to the rejected state after this signature. - `rejections.count` — Rejections recorded so far. - `rejections.required` — Minimum rejections required to fail the step (defaults to majority if not explicitly set in the flow builder). - `rejections.maximum` — Optional hard-stop when configured via the flow builder.",
     "href": "/docs/api"
   },
   {
@@ -68,19 +80,19 @@
   {
     "id": "docs/auditing-and-changelog#built-in-data",
     "title": "Built-in Data",
-    "content": "- `approval_requests` — `actor_id`, `new_data`, `original_data`, `context` (includes route name and event) - `approval_steps` — `level`, `threshold`, `status`, `completed_at`, `meta.signers` - `approval_signatures` — `staff_id`, `decision`, `comment`, `signed_at`",
+    "content": "- `approval_requests` — `initiator_id`, `new_data`, `original_data`, `context` (includes route name and event) - `approval_steps` — `level`, `threshold`, `status`, `completed_at`, `meta.signers` - `approval_signatures` — `signer_id` (approver user id), `decision`, `comment`, `signed_at`",
     "href": "/docs/auditing-and-changelog"
   },
   {
     "id": "docs/auditing-and-changelog#events",
     "title": "Events",
-    "content": "- `ApprovalRequestCaptured($request)` — when a request is created. - `ApprovalStepApproved($step, $signature)` — when a signature is recorded. - `ApprovalRequestCompleted($request)` — after all steps complete and changes are applied.",
+    "content": "- `ApprovalRequestCaptured($request)` — when a request is created. - `ApprovalStepApproved($step, $signature)` — when an approval signature is recorded. - `ApprovalStepRejected($step, $signature)` — whenever a rejection signature is recorded (the step may still be pending until the threshold is met). - `ApprovalRequestCompleted($request)` — after all steps complete and changes are applied. - `ApprovalRequestRejected($request, $step, $signature)` — when a request is rejected at any step after the rejection threshold is met.",
     "href": "/docs/auditing-and-changelog"
   },
   {
     "id": "docs/auditing-and-changelog#changelog-output",
     "title": "Changelog Output",
-    "content": "To generate human-friendly notes for accounting/accountability: - Render differences between `original_data` and `new_data` per request. - Include step names, signers (by `staff_id` lookup), timestamps, and comments. - Append the approval request ID in deployment or release notes.",
+    "content": "To generate human-friendly notes for accounting/accountability: - Render differences between `original_data` and `new_data` per request. - Include step names, signers (lookup by `signer_id`/user id), timestamps, and comments. - Append the approval request ID in deployment or release notes.",
     "href": "/docs/auditing-and-changelog"
   },
   {
@@ -92,25 +104,25 @@
   {
     "id": "docs/bots-and-automation#bots-automation",
     "title": "Bots & Automation",
-    "content": "Bots can open approval requests (as initiators) or receive events to notify teams. Guardrails stores the `actor_id`, so consider creating a service account user for your bot.",
+    "content": "Bots can open approval requests (as initiators) or receive events to notify teams. Guardrails stores the `initiator_id`, so consider creating a service account user for your bot.",
     "href": "/docs/bots-and-automation"
   },
   {
     "id": "docs/bots-and-automation#service-accounts-as-initiators",
     "title": "Service Accounts as Initiators",
-    "content": "Use a dedicated `staff` user (e.g., `automation@yourco`) and authenticate via a token with scoped abilities. Changes captured while authenticated as this user will record them as the initiator.",
+    "content": "Use a dedicated service account user (e.g., `automation@yourco`) and authenticate via a token with scoped abilities. Changes captured while authenticated as this user will record them as the initiator.",
     "href": "/docs/bots-and-automation"
   },
   {
     "id": "docs/bots-and-automation#event-driven-integrations",
     "title": "Event-Driven Integrations",
-    "content": "Guardrails fires domain events you can listen to: - `OVAC\\\\Guardrails\\\\Events\\\\ApprovalRequestCaptured` - `OVAC\\\\Guardrails\\\\Events\\\\ApprovalStepApproved` - `OVAC\\\\Guardrails\\\\Events\\\\ApprovalRequestCompleted`",
+    "content": "Guardrails fires domain events you can listen to: - `OVAC\\\\Guardrails\\\\Events\\\\ApprovalRequestCaptured` - `OVAC\\\\Guardrails\\\\Events\\\\ApprovalStepApproved` - `OVAC\\\\Guardrails\\\\Events\\\\ApprovalStepRejected` - `OVAC\\\\Guardrails\\\\Events\\\\ApprovalRequestCompleted` - `OVAC\\\\Guardrails\\\\Events\\\\ApprovalRequestRejected`",
     "href": "/docs/bots-and-automation"
   },
   {
     "id": "docs/bots-and-automation#chatops-approvals",
     "title": "ChatOps Approvals",
-    "content": "- Expose a small endpoint your bot can call to POST the `approve` action with a signed token. - Or map bot identities to staff users and let them sign steps if they satisfy signer rules.",
+    "content": "- Expose a small endpoint your bot can call to POST the `approve` action with a signed token. - Or map bot identities to real approver accounts and let them sign steps if they satisfy signer rules.",
     "href": "/docs/bots-and-automation"
   },
   {
@@ -134,25 +146,109 @@
   {
     "id": "docs/configuration#configuration-reference",
     "title": "Configuration Reference",
-    "content": "Publish the config file and review available options: Default config: `config/guardrails.php` Notes - auth.guard: The Laravel guard Guardrails uses to determine the authenticated approver. Routes default to using this guard if you don’t override middleware. - route_prefix: The base path for the JSON API; keep it namespaced under your staff/admin APIs. - middleware: Ensure your auth guard matches your staff guard. - page_prefix: The browser-facing page where reviewers can see pending requests. - views.layout and views.section: Provide a layout name if you want the bundled page to yield into an app layout. - permissions.view and permissions.sign: These are consulted by the routes and the UI. Map to your authorization layer (Spatie permissions recommended). - controller.enabled: Gate the controller helper so you can opt-out globally during development or certain environments. - support.*: Controls the one-time console message asking to star/sponsor.",
+    "content": "Publish the config file and review available options: Default config: `config/guardrails.php` Notes - `auth.guard`: Defaults to `auth.defaults.guard` (usually `web`). Set `GUARDRAILS_AUTH_GUARD` or edit the config if approvals should use another guard (e.g. `sanctum`, `api`). - `route_prefix`: Base path for the JSON API; adjust to match your application’s namespace. - `middleware`: Guardrails defaults to `['api','auth:{guard}`]. Replace or extend this array to match your middleware stack. - `page_prefix`: Browser-facing route for the review UI. - `views.layout` / `views.section`: Provide a layout if you want the bundled page to yield into your app shell. Leave `layout` `null` to serve the standalone UI, or keep it `null` and include `@include('guardrails::panel')` wherever you want the panel to appear inside your own view. - `permissions.view` and `permissions.sign`: Abilities consulted by the routes and UI (map to your policy layer). - `signing.resolve_roles_using`: Supply a closure if you need to resolve roles from a custom source (see [Signing Policy Reference](./signing-policy.md)).",
+    "href": "/docs/configuration"
+  },
+  {
+    "id": "docs/configuration#authentication-helper",
+    "title": "Authentication helper",
+    "content": "Guardrails ships a small helper (`OVAC\\\\Guardrails\\\\Support\\\\Auth`) that centralizes guard resolution: - `Auth::guardName()` returns the configured guard, falling back to `auth.defaults.guard` or `web`. - `Auth::guard()` resolves the framework guard instance. - `Auth::user()` / `Auth::check()` mirror Laravel’s helpers but respect the Guardrails configuration. - `Auth::providerModelClass()` and `Auth::findUserById()` resolve users via the guard’s provider, handling both Eloquent models and custom classes. You can rely on these helpers when writing custom integrations (policies, events) so your code stays in sync with the guard Guardrails uses. Additional options: - `controller.enabled`: Gate the controller helper so you can opt-out globally during development or certain environments. - `support.*`: Controls the one-time console message asking teams to star or sponsor the package.",
     "href": "/docs/configuration"
   },
   {
     "id": "docs/custom-controllers#custom-controllers",
     "title": "custom-controllers",
-    "content": "title: Using Your Own Controllers description: How to wire Guardrails without the built-in controller.",
+    "content": "title: Using Your Own Controllers description: Opinionated patterns for teams that want Guardrails logic without the stock controller.",
     "href": "/docs/custom-controllers"
   },
   {
     "id": "docs/custom-controllers#using-your-own-controllers",
     "title": "Using Your Own Controllers",
-    "content": "You can keep your existing routes/controllers and still use Guardrails to capture and approve changes.",
+    "content": "Guardrails ships with `GuardrailApprovalsController`, but you do not have to expose its routes. Many teams already have established API envelopes, documentation styles, or tenancy rules that they would rather keep. This guide documents the supported ways to plug Guardrails into your own controllers, the scenarios in which each pattern shines, and every hook you can override when extending the stock controller. | --- | --- | | Existing REST/JSON API with consistent envelopes | Keep response shape, docblocks, rate-limits, and middleware | **Extend `GuardrailApprovalsController`** and override response hooks | | Domain service or console workflow | Capture approvals from outside HTTP | **Call `GuardrailApprovalService::capture()` / `::rejectStep()` directly** | | Multi-tenant dashboards with custom queries | Restrict listings and actions to tenant boundaries | **Create bespoke controllers** that reuse Guardrails models + services | | Hybrid flows (bot, email, admin UI) | Approve/reject from different channels | Combine **service helpers** with lightweight routes | ---",
     "href": "/docs/custom-controllers"
   },
   {
-    "id": "docs/custom-controllers#approve-endpoint",
-    "title": "Approve Endpoint",
-    "content": "If you don’t want to use the package controller for approving, add your own route and reuse the policy + models: This pattern keeps you fully in control of routing and middleware while reusing Guardrails’ core logic.",
+    "id": "docs/custom-controllers#pattern-1-capture-inside-your-business-action",
+    "title": "Pattern 1 – Capture Inside Your Business Action",
+    "content": "You can request approval while processing the original action—no controller changes required. Capture only the attributes that should be guarded and return early so the UI informs users that an approval is pending. **Why it works:** `GuardrailApprovalService::capture()` stores the requested change, creates steps, and emits events. Your controller stays focused on validation and messaging. ---",
+    "href": "/docs/custom-controllers"
+  },
+  {
+    "id": "docs/custom-controllers#pattern-2-build-bespoke-approvereject-endpoints",
+    "title": "Pattern 2 – Build Bespoke Approve/Reject Endpoints",
+    "content": "When you want full control over routing and middleware (for example, in a tenant-aware API), write slim controllers that reuse Guardrails models and services.",
+    "href": "/docs/custom-controllers"
+  },
+  {
+    "id": "docs/custom-controllers#reject",
+    "title": "Reject",
+    "content": "Passing `false` as the fourth argument to `rejectStep()` skips the signer check if you have already run a policy. **When to use this pattern:** - You need tenant filtering or guardrails must run inside a feature flag boundary. - Approvals live under namespaced routes (e.g., `/admin/approvals`) with custom rate limits. - You want to mix traditional controllers with bot webhooks or artisan commands. ---",
+    "href": "/docs/custom-controllers"
+  },
+  {
+    "id": "docs/custom-controllers#pattern-3-extend-the-stock-controller",
+    "title": "Pattern 3 – Extend the Stock Controller",
+    "content": "Extending `GuardrailApprovalsController` keeps all built-in behaviour (auth, threshold handling, events) while letting you adjust the presentation. This is ideal for teams with OpenAPI/docblock-driven or contract-first APIs. **Why extend instead of reimplement?** - You inherit every bug fix and feature Guardrails ships. - The Guardrails controller already filters approvals so users only see steps they can act on. - You only override the presentation or logging you care about. > Rejection signatures now include threshold metadata. The default `rejectStepResponse()` returns `rejections.count`, `rejections.required`, and `rejections.maximum` so clients can display progress toward the failure threshold.",
+    "href": "/docs/custom-controllers"
+  },
+  {
+    "id": "docs/custom-controllers#formatting-the-listing-response",
+    "title": "Formatting the Listing Response",
+    "content": "Even after extending the controller you can reshape the listing. Override `indexResponse()` to wrap the paginator in your preferred envelope while leaving filtering and security to Guardrails. > ℹ️ You still call `parent::index($request)` from your route action; Guardrails will invoke this override automatically before returning the HTTP response. ---",
+    "href": "/docs/custom-controllers"
+  },
+  {
+    "id": "docs/custom-controllers#controller-hook-reference-with-typical-customisations",
+    "title": "Controller Hook Reference (With Typical Customisations)",
+    "content": "`GuardrailApprovalsController` exposes protected hooks specifically so you can swap in your own logic. The list below shows the most common overrides and what teams use them for.",
+    "href": "/docs/custom-controllers"
+  },
+  {
+    "id": "docs/custom-controllers#authentication-session",
+    "title": "Authentication & Session",
+    "content": "| Hook | Default | Customisation Ideas | | --- | --- | --- | | `guardName()` | Reads `guardrails.auth.guard` | Point to a different guard for internal APIs (`'internal'`, `'sanctum'`, etc.) | | `getAuthenticatedUser()` | `request()->user()` | Support API tokens or service accounts when no session exists | | `unauthenticatedResponse()` | `401` JSON payload | Align error envelope with your API schema |",
+    "href": "/docs/custom-controllers"
+  },
+  {
+    "id": "docs/custom-controllers#abilities-policies",
+    "title": "Abilities & Policies",
+    "content": "| Hook | Default | Use Cases | | --- | --- | --- | | `viewAbility()` / `signAbility()` / `rejectAbility()` | Values from config | Map to comprehensive policies such as `can('approvals.sign', $team)` | | `authorizeIndex()` / `authorizeApprove()` / `authorizeReject()` | `userHasAbility()` | Run bespoke policy checks (department matches, feature flag on) | | `userHasAbility()` | Delegates to `can()` | Integrate with token abilities or Laravel Permission |",
+    "href": "/docs/custom-controllers"
+  },
+  {
+    "id": "docs/custom-controllers#listing-visibility",
+    "title": "Listing & Visibility",
+    "content": "| Hook | Default Behaviour | Customisations | | --- | --- | --- | | `resolvePerPage()` | Cap at 100 | Lower/raise caps per client, support `per_page=all` | | `newIndexQuery()` | Pending requests with relationships | Join tenant tables, preload extra relations | | `paginateIndexResults()` | Array pagination with filtering by user relevance | Replace with cursor pagination or GraphQL connection | | `filterApprovalsForUser()` / `requestRelatesToUser()` / `stepRelatesToUser()` | Show requests the user initiated, signed, or can sign | Expose managerial view or team dashboards | | `resolveUserIdentifier()` | Uses `getAuthIdentifier()` then `id` | Support UUIDs or external IDs |",
+    "href": "/docs/custom-controllers"
+  },
+  {
+    "id": "docs/custom-controllers#step-lifecycle-validation",
+    "title": "Step Lifecycle & Validation",
+    "content": "| Hook | Purpose | Customisations | | --- | --- | --- | | `validateApproveStep()` / `validateRejectStep()` | Validate request payloads | Capture justification codes, attachments, or OTP tokens | | `resolveApprovalStep()` | Locate step by request + id | Add tenant guards or load via slugs | | `ensureStepIsPending()` / `stepAlreadyFinalizedResponse()` | Handle stale requests | Allow resubmitting with warnings, or auto-redirect | | `canUserSignStep()` / `ineligibleSignerResponse()` | Enforce signer rules | Combine with HR data, provide actionable error messages | | `resolveRejectionThresholds()` | Determine min/max rejections | Swap in custom strategies (e.g., unanimous, weighted) | | `rejectionCount()` | Count current rejection signatures | Reuse cached counts or preloaded relations | | `shouldFinalizeRejectedStep()` | Decide when to mark the step rejected | Delay finalisation until downstream checks pass |",
+    "href": "/docs/custom-controllers"
+  },
+  {
+    "id": "docs/custom-controllers#recording-signatures-events",
+    "title": "Recording Signatures & Events",
+    "content": "| Hook | Purpose | Customisations | | --- | --- | --- | | `recordApprovalSignature()` / `recordRejectionSignature()` | Persist decisions | Attach metadata (IP address, MFA evidence, ticket IDs) | | `fireStepApprovedEvent()` / `fireStepRejectedEvent()` | Emit domain events | Dispatch jobs, webhooks, or analytics metrics | | `finalizeStep()` / `finalizeRejectedStep()` | Transition step state | Queue async work, notify approvers, trigger re-evaluation | | `completeApprovalRequest()` / `rejectApprovalRequest()` | Update request state | Integrate with change management tools or compliance systems | | `applyApprovedModelChanges()` / `applyChangesToModel()` | Apply staged data | Mutate payload before persisting, call external services | | `fireRequestCompletedEvent()` / `fireRequestRejectedEvent()` | Notify listeners | Broadcast to Slack/email, feed incident response workflows |",
+    "href": "/docs/custom-controllers"
+  },
+  {
+    "id": "docs/custom-controllers#response-shaping",
+    "title": "Response Shaping",
+    "content": "| Hook | Default | Example Override | | --- | --- | --- | | `indexResponse()` | `{ success: true, data: paginator }` | Wrap in `{ data, meta }` or transform items before returning | | `approveStepResponse()` / `rejectStepResponse()` | `{ success: true, approved/rejected: true }` | Return structured envelopes, include fresh step/request payloads | **Tip:** Whenever you override a hook, call the parent implementation unless you intentionally replace the behaviour. That ensures future Guardrails updates (bug fixes, events, logging) continue to work. ---",
+    "href": "/docs/custom-controllers"
+  },
+  {
+    "id": "docs/custom-controllers#end-to-end-example-internal-api-rollout",
+    "title": "End-to-End Example: Internal API Rollout",
+    "content": "A typical enterprise rollout follows these steps: 1. **Capture guarded fields** inside existing resource controllers (Pattern 1) so business logic stays familiar. 2. **Expose internal approvals endpoints** by extending `GuardrailApprovalsController` (Pattern 3) to keep docblocks, rate limits, and consistent success envelopes. 3. **Provide manager-only screens** by overriding `filterApprovalsForUser()` to show team requests. 4. **Broadcast events** in `fireRequestCompletedEvent()` / `fireRequestRejectedEvent()` to notify Slack and update change logs. 5. **Automate rejections** by calling `GuardrailApprovalService::rejectStep()` from background jobs when external validation fails (Pattern 2 helpers). With these pieces in place, Guardrails becomes an implementation detail—the rest of your codebase keeps its existing conventions while gaining robust approval flows. ---",
+    "href": "/docs/custom-controllers"
+  },
+  {
+    "id": "docs/custom-controllers#related-guides",
+    "title": "Related Guides",
+    "content": "- [Controller Interception Guide](./usage-controllers.md) - [Model Guarding Guide](./usage-models.md) - [Flow Builder Reference](./flow-builder.md) - [Auditing & Changelog](./auditing-and-changelog.md) - [Full Testing Guide](./testing-full.md)",
     "href": "/docs/custom-controllers"
   },
   {
@@ -164,7 +260,7 @@
   {
     "id": "docs/database#database-migrations",
     "title": "Database & Migrations",
-    "content": "Publish the migrations and run them: Tables 1) `human_approval_requests` - `id` — Primary key - `approvable_type`, `approvable_id` — Morph target of the change - `actor_id` — User who initiated the change (from your configured guard) - `state` — pending|approved|rejected (package uses `pending` and `approved`) - `new_data` — JSON snapshot of proposed values - `original_data` — JSON snapshot of original values - `context` — JSON route/event metadata - `meta` — JSON for future extensions - `created_at`, `updated_at` 2) `human_approval_steps` - `id`, `request_id` — Belongs to an approval request - `level` — Step order (1-based) - `name` — Display name of the step - `threshold` — Minimum approvals required for this step - `status` — pending|completed - `completed_at` — Timestamp when threshold met - `meta` — JSON including `signers`, `include_initiator`, `preapprove_initiator` - `created_at`, `updated_at` 3) `human_approval_signatures` - `id`, `step_id` — Belongs to a step - `staff_id` — Signer staff - `decision` — approved|rejected|postponed (package uses `approved`) - `comment` — Optional signer comment - `signed_at` — Timestamp of the decision - `meta` — JSON for extensions - `creat",
+    "content": "Publish the migrations and run them: Tables 1) `guardrail_approval_requests` - `id` — Primary key - `approvable_type`, `approvable_id` — Morph target of the change - `initiator_id` — User who initiated the change (from your configured guard) - `state` — pending|approved|rejected (package now uses all three) - `description` — Short human summary of the captured change - `new_data` — JSON snapshot of proposed values - `original_data` — JSON snapshot of original values - `context` — JSON route/event metadata - `meta` — JSON for future extensions - `created_at`, `updated_at` 2) `guardrail_approval_steps` - `id`, `request_id` — Belongs to an approval request - `level` — Step order (1-based) - `name` — Display name of the step - `threshold` — Minimum approvals required for this step - `status` — pending|completed|rejected - `completed_at` — Timestamp when threshold met - `meta` — JSON including `signers`, `include_initiator`, `preapprove_initiator`, `rejection_min`, `rejection_max` - `created_at`, `updated_at` 3) `guardrail_approval_signatures` - `id`, `step_id` — Belongs to a step - `signer_id` — Signer user id - `decision` — approved|rejected|postponed (package uses `approved` and `rej",
     "href": "/docs/database"
   },
   {
@@ -200,7 +296,7 @@
   {
     "id": "docs/extending-models-and-migrations#add-indexes-for-performance",
     "title": "Add Indexes for Performance",
-    "content": "Consider indexing `state`, `actor_id`, and any new foreign keys to speed up dashboards:",
+    "content": "Consider indexing `state`, `initiator_id`, and any new foreign keys to speed up dashboards:",
     "href": "/docs/extending-models-and-migrations"
   },
   {
@@ -236,7 +332,7 @@
   {
     "id": "docs/faq#what-if-the-initiator-doesnt-have-the-required-permission",
     "title": "What if the initiator doesn’t have the required permission?",
-    "content": "They won’t count and cannot sign. `includeInitiator(true, true)` only pre-approves when the initiator satisfies the signer rule. Otherwise, additional eligible staff must sign.",
+    "content": "They won’t count and cannot sign. `includeInitiator(true, true)` only pre-approves when the initiator satisfies the signer rule. Otherwise, additional eligible approvers must sign.",
     "href": "/docs/faq"
   },
   {
@@ -254,13 +350,13 @@
   {
     "id": "docs/flow-builder#flow-builder",
     "title": "flow-builder",
-    "content": "title: Flow Builder Reference description: All methods on FlowExtensionBuilder with examples.",
+    "content": "title: Flow Builder Reference description: All methods on FlowBuilder with examples.",
     "href": "/docs/flow-builder"
   },
   {
     "id": "docs/flow-builder#flow-builder-reference",
     "title": "Flow Builder Reference",
-    "content": "Namespace: `OVAC\\\\Guardrails\\\\Services\\\\FlowExtensionBuilder` Implements: `OVAC\\\\Guardrails\\\\Contracts\\\\FlowExtender` Usage API - `static make(): static` — Create a new builder. - `guard(string $guard): static` — Auth guard for signer checks (default `staff`). - `permissions(array|string $perms): static` — Append permission(s); all-of by default. - `setPermissions(array|string $perms): static` — Replace permissions list. - `anyOfPermissions(array|string $perms): static` — Use any-of semantics. - `requireAnyPermissions(): static` — Alias to set any-of mode. - `requireAllPermissions(): static` — Alias to set all-of mode. - `roles(array|string $roles): static` — Append role(s); all-of by default. - `setRoles(array|string $roles): static` — Replace roles list. - `anyOfRoles(array|string $roles): static` — Use any-of semantics. - `requireAnyRoles(): static` — Alias to set any-of mode. - `requireAllRoles(): static` — Alias to set all-of mode. - `includeInitiator(bool $include = true, bool $preapprove = true): static` — Include initiator as a potential signer and optionally pre-approve. - `samePermissionAsInitiator(bool $require = true): static` — Require overlap with initiator’s permissi",
+    "content": "Namespace: `OVAC\\\\Guardrails\\\\Services\\\\FlowBuilder` Implements: `OVAC\\\\Guardrails\\\\Contracts\\\\FlowExtender` Usage API - `static make(): static` — Create a new builder. - `guard(string $guard): static` — Auth guard for signer checks (defaults to your configured guard, typically `web`). - `permissions(array|string $perms): static` — Append permission(s); all-of by default. - `setPermissions(array|string $perms): static` — Replace permissions list. - `anyOfPermissions(array|string $perms): static` — Use any-of semantics. - `requireAnyPermissions(): static` — Alias to set any-of mode. - `requireAllPermissions(): static` — Alias to set all-of mode. - `roles(array|string $roles): static` — Append role(s); all-of by default. - `setRoles(array|string $roles): static` — Replace roles list. - `anyOfRoles(array|string $roles): static` — Use any-of semantics. - `requireAnyRoles(): static` — Alias to set any-of mode. - `requireAllRoles(): static` — Alias to set all-of mode. - `includeInitiator(bool $include = true, bool $preapprove = true): static` — Include initiator as a potential signer and optionally pre-approve. - `samePermissionAsInitiator(bool $require = true): static` — Require overlap",
     "href": "/docs/flow-builder"
   },
   {
@@ -278,7 +374,7 @@
   {
     "id": "docs/getting-started#getting-started",
     "title": "Getting Started",
-    "content": "Guardrails adds human‑in‑the‑loop approvals to your Laravel admin/ops apps.",
+    "content": "Guardrails plugs a human approval layer into your Laravel app so risky actions pause until the right people sign off.",
     "href": "/docs/getting-started"
   },
   {
@@ -290,13 +386,13 @@
   {
     "id": "docs/getting-started#configure",
     "title": "Configure",
-    "content": "Edit `config/guardrails.php` to set API prefixes, middleware, and policy names.",
+    "content": "Edit `config/guardrails.php` to set API prefixes, middleware, and policy names. Guardrails defaults to your app’s `auth.defaults.guard` (typically `web`). Set `GUARDRAILS_AUTH_GUARD` if approvals should use another guard such as `sanctum`.",
     "href": "/docs/getting-started"
   },
   {
     "id": "docs/getting-started#ui",
     "title": "UI",
-    "content": "Visit `/{page_prefix}` (default `staff/guardrails`) for a minimal review UI.",
+    "content": "Visit `/{page_prefix}` (default `guardrails`) for a minimal review UI.",
     "href": "/docs/getting-started"
   },
   {
@@ -308,7 +404,7 @@
   {
     "id": "docs/ideas-and-examples#ideas-examples-10",
     "title": "Ideas & Examples (10)",
-    "content": "1) AI Triage for Approvals 2) PR Gating (Deploy Flags) 3) KYC Review 4) GDPR Delete Requests 5) Marketing Blast 6) Vendor Access Grant 7) Payment Schedule Change 8) Feature Ramp % Change 9) Schema Migration Toggle 10) External Partner Data Push Each example can be plugged into model `actorApprovalFlow()` or computed in your controller/interceptor at runtime.",
+    "content": "1) AI Triage for Approvals 2) PR Gating (Deploy Flags) 3) KYC Review 4) GDPR Delete Requests 5) Marketing Blast 6) Vendor Access Grant 7) Payment Schedule Change 8) Feature Ramp % Change 9) Schema Migration Toggle 10) External Partner Data Push Each example can be plugged into model `guardrailApprovalFlow()` or computed in your controller/interceptor at runtime.",
     "href": "/docs/ideas-and-examples"
   },
   {
@@ -368,7 +464,7 @@
   {
     "id": "docs/overview#guardrails",
     "title": "Guardrails",
-    "content": "Guardrails adds actor approval flows to critical mutations in your management system. Define guarded attributes, build multi‑step signer policies, and expose a simple API + UI for reviewers to sign.",
+    "content": "Guardrails is the approvals layer for the parts of your product that need humans in the loop. Flag the attributes that require review, describe who must sign (and in what order), and Guardrails captures the change, tracks signatures, and applies the update when every step is satisfied.",
     "href": "/docs/overview"
   },
   {
@@ -380,7 +476,7 @@
   {
     "id": "docs/overview#usage-patterns",
     "title": "Usage Patterns",
-    "content": "- Model trait: `OVAC\\\\Guardrails\\\\Concerns\\\\ActorGuarded` - Controller helper: `InteractsWithActorApproval` - Flow builder: `OVAC\\\\Guardrails\\\\Services\\\\FlowExtensionBuilder`",
+    "content": "- Model trait: `OVAC\\\\Guardrails\\\\Concerns\\\\Guardrail` - Controller helper: `OVAC\\\\Guardrails\\\\Http\\\\Concerns\\\\InteractsWithGuardrail` - Flow builder: `OVAC\\\\Guardrails\\\\Services\\\\FlowBuilder`",
     "href": "/docs/overview"
   },
   {
@@ -388,6 +484,18 @@
     "title": "Configuration",
     "content": "See `config/guardrails.php` for route + policy settings.",
     "href": "/docs/overview"
+  },
+  {
+    "id": "docs/overview#continue-exploring",
+    "title": "Continue Exploring",
+    "content": "- [Model Guarding Guide](./usage-models.md) — Attach Guardrails directly to Eloquent models. - [Controller Interception Guide](./usage-controllers.md) — Route risky requests through approvals. - [Advanced Flows](./advanced.md) — Build dynamic and context-aware signing policies. - [Common Patterns](./patterns.md) — Start from ready-made approval recipes. - [Full Testing Guide](./testing-full.md) — Learn how to exercise Guardrails in your test suite.",
+    "href": "/docs/overview"
+  },
+  {
+    "id": "docs/patterns#related-guides",
+    "title": "Related Guides",
+    "content": "- [Model Guarding Guide](./usage-models.md) — Implement these recipes on your Eloquent models. - [Controller Interception Guide](./usage-controllers.md) — Adapt patterns to request interception. - [Advanced Flows](./advanced.md) — Extend patterns with dynamic logic. - [Full Testing Guide](./testing-full.md) — Confirm each recipe behaves as expected.",
+    "href": "/docs/patterns"
   },
   {
     "id": "docs/permissions#permissions",
@@ -398,8 +506,62 @@
   {
     "id": "docs/permissions#permissions-policies",
     "title": "Permissions & Policies",
-    "content": "By default, Guardrails’ routes require an authenticated `staff` user and the `approvals.manage` ability (configurable). There are two authorization layers used internally: 1) Spatie Permissions (if available) - Permissions are checked with `$staff->hasPermissionTo('...')`. - Roles are checked with `$staff->hasRole('...')`. 2) Token Abilities (fallback) - When Spatie is not available, permissions are matched against `currentAccessToken()->abilities`. - Roles are not supported in this mode. Signer Rules - `permissions` + `permissions_mode` (all|any) - `roles` + `roles_mode` (all|any) - `guard`: auth guard (default `staff`) - `same_permission_as_initiator` / `same_role_as_initiator`: require overlap Route-level Permissions - `permissions.view`: required for listing/paging requests - `permissions.sign`: required for approving steps Adjust these in `config/guardrails.php` to map to your own abilities.",
+    "content": "By default, Guardrails’ routes require an authenticated user on the configured guard (defaults to your app’s `auth.defaults.guard`) and the `approvals.manage` ability (configurable). There are two authorization layers used internally: 1) Spatie Permissions (if available) - Permissions are checked with `$user->hasPermissionTo('...')`. - Roles are checked with `$user->hasRole('...')`. 2) Token Abilities (fallback) - When Spatie is not available, permissions are matched against `currentAccessToken()->abilities`. - Roles are not supported in this mode. Signer Rules - `permissions` + `permissions_mode` (all|any) - `roles` + `roles_mode` (all|any) - `guard`: auth guard (default resolves to `auth.defaults.guard`) - `same_permission_as_initiator` / `same_role_as_initiator`: require overlap Route-level Permissions - `permissions.view`: required for listing/paging requests - `permissions.sign`: required for approving steps Adjust these in `config/guardrails.php` to map to your own abilities.",
     "href": "/docs/permissions"
+  },
+  {
+    "id": "docs/signing-policy#signing-policy",
+    "title": "signing-policy",
+    "content": "title: Signing Policy Reference description: How Guardrails evaluates permissions, roles, and custom resolvers. tags: - approvals - signing - permissions - roles",
+    "href": "/docs/signing-policy"
+  },
+  {
+    "id": "docs/signing-policy#signing-policy-reference",
+    "title": "Signing Policy Reference",
+    "content": "Guardrails relies on a signing policy to decide whether an authenticated initiator can approve a step. The evaluation order is predictable so you can design flows with confidence.",
+    "href": "/docs/signing-policy"
+  },
+  {
+    "id": "docs/signing-policy#permission-checks",
+    "title": "Permission checks",
+    "content": "1. **Permissions come first.** The signer rules list `permissions` plus a `permissions_mode` (`all` or `any`). 2. Guardrails looks for permission helpers on the user: - If the user exposes Spatie-style methods (`hasPermissionTo`), those are used. - Otherwise, Guardrails inspects token abilities (e.g. `currentAccessToken()->abilities`). 3. For `all`, the initiator must satisfy every listed permission. For `any`, a single match is enough. Permissions work out of the box—no extra configuration required.",
+    "href": "/docs/signing-policy"
+  },
+  {
+    "id": "docs/signing-policy#role-checks",
+    "title": "Role checks",
+    "content": "Roles are optional. If you include them in a step: - With Spatie roles available (`hasRole`), Guardrails uses the package directly. - Without Spatie, Guardrails falls back to a resolver: - By default, it inspects common patterns (an Eloquent relationship or `roles` attribute). - You can take full control via the `guardrails.signing.resolve_roles_using` config key. Set it to a closure that receives the authenticated user and returns an array of role identifiers.",
+    "href": "/docs/signing-policy"
+  },
+  {
+    "id": "docs/signing-policy#initiator-overlap",
+    "title": "Initiator overlap",
+    "content": "Flows can demand overlap with the initiator using `same_permission_as_initiator` or `same_role_as_initiator`. Guardrails compares the initiator’s permissions or roles against the signer’s set after running the checks above. If no overlap exists, the signer is rejected.",
+    "href": "/docs/signing-policy"
+  },
+  {
+    "id": "docs/signing-policy#tokens-and-abilities",
+    "title": "Tokens and abilities",
+    "content": "When using Laravel Sanctum or similar token guards, Guardrails will treat token abilities as permissions. Make sure the token includes the required ability names. > Guardrails uses the configured auth guard (default: `auth.defaults.guard`). You can change it via `GUARDRAILS_AUTH_GUARD` or `config/guardrails.php`. The helper `OVAC\\Guardrails\\Support\\Auth` exposes `guardName()`, `guard()`, and `user()` if you need to mirror Guardrails’ guard selection in custom code.",
+    "href": "/docs/signing-policy"
+  },
+  {
+    "id": "docs/signing-policy#guard-selection-per-step-overrides",
+    "title": "Guard selection & per-step overrides",
+    "content": "- `Flow::make()` seeds the guard from `config('guardrails.auth.guard')`, falling back to your app’s default guard. This keeps flows aligned with how you authenticate reviewers. - You can override the guard for a specific step by chaining `guard('other-guard')` before calling `signedBy()`. See the [Controller Interception Guide](./usage-controllers.md#mixing-guards-in-a-flow) for a full example.",
+    "href": "/docs/signing-policy"
+  },
+  {
+    "id": "docs/signing-policy#troubleshooting",
+    "title": "Troubleshooting",
+    "content": "- **Unexpected denials?** Log the signer meta to confirm the permissions/roles being evaluated. - **Custom guards?** Double-check the resolver returns plain strings; nested arrays or objects will be ignored. - **Mixed ecosystems?** You can use both permissions and roles in the same step; Guardrails requires that both pass according to their respective modes.",
+    "href": "/docs/signing-policy"
+  },
+  {
+    "id": "docs/signing-policy#related-configuration",
+    "title": "Related configuration",
+    "content": "- `guardrails.permissions.view` and `guardrails.permissions.sign` gate the built-in API routes. - `guardrails.signing.resolve_roles_using` supplies a custom resolver. For examples of defining signer rules, see the [Model Guarding Guide](./usage-models.md) and [Controller Interception Guide](./usage-controllers.md).",
+    "href": "/docs/signing-policy"
   },
   {
     "id": "docs/testing-full#testing-full",
@@ -428,13 +590,19 @@
   {
     "id": "docs/testing-full#writing-your-app-tests",
     "title": "Writing Your App Tests",
-    "content": "1) Use in-memory sqlite or test DB; load Guardrails migrations and your own tables. 2) Create a model with the `ActorGuarded` trait and declare guarded attributes. 3) `actingAs($user, config('guardrails.auth.guard'))` to test capture/approve flows. 4) Event testing: `Event::fake([...])` and `Event::assertDispatched(...)`.",
+    "content": "1) Use in-memory sqlite or test DB; load Guardrails migrations and your own tables. 2) Create a model with the `Guardrail` trait and declare guarded attributes. 3) `actingAs($user, config('guardrails.auth.guard'))` to test capture/approve flows. 4) Event testing: `Event::fake([...])` and `Event::assertDispatched(...)`.",
     "href": "/docs/testing-full"
   },
   {
     "id": "docs/testing-full#ci",
     "title": "CI",
     "content": "GitHub Actions workflow `run-tests.yml` runs the suite across PHP 8.1–8.3 and uploads coverage to Codecov.",
+    "href": "/docs/testing-full"
+  },
+  {
+    "id": "docs/testing-full#related-guides",
+    "title": "Related Guides",
+    "content": "- [Model Guarding Guide](./usage-models.md) — Set up fixtures that mirror your production models. - [Controller Interception Guide](./usage-controllers.md) — Cover interceptor flows in feature tests. - [Advanced Flows](./advanced.md) — Know what behaviours to assert for dynamic policies. - [Common Patterns](./patterns.md) — Use sample flows as starting points for new specs.",
     "href": "/docs/testing-full"
   },
   {
@@ -452,7 +620,7 @@
   {
     "id": "docs/testing#app-integration-tips",
     "title": "App Integration Tips",
-    "content": "- Use an in-memory sqlite database for speed. - Seed staff users with the appropriate permissions/roles for realistic flows. - Hit the HTTP routes with Testbench’s router to exercise the API end-to-end.",
+    "content": "- Use an in-memory sqlite database for speed. - Seed approver accounts with the appropriate permissions/roles for realistic flows. - Hit the HTTP routes with Testbench’s router to exercise the API end-to-end.",
     "href": "/docs/testing"
   },
   {
@@ -464,7 +632,7 @@
   {
     "id": "docs/ui#ui-assets",
     "title": "UI & Assets",
-    "content": "Guardrails ships a minimal Blade view for reviewing pending requests at `/{page_prefix}` (default `staff/guardrails`). It calls the JSON API and renders steps with Approve buttons.",
+    "content": "Guardrails ships a production-ready Blade view for reviewing pending requests at `/{page_prefix}` (default `guardrails`). The template now runs two ways: - **Standalone** (no layout configured) – renders a full HTML document with Guardrails-branded styling and loads Alpine.js from the CDN automatically. - **Embedded** (layout configured) – you can drop the Guardrails panel inside any dashboard by including the shared partial and letting the view push the required assets onto your stacks.",
     "href": "/docs/ui"
   },
   {
@@ -476,13 +644,19 @@
   {
     "id": "docs/ui#layout-integration",
     "title": "Layout Integration",
-    "content": "Set `views.layout` and `views.section` in `config/guardrails.php` to render the page inside your app layout.",
+    "content": "Set `views.layout` and `views.section` in `config/guardrails.php` to render the page inside your app layout. Make sure your layout yields the relevant stacks: If `views.layout` is left `null`, Guardrails renders the opinionated standalone UI so you can host the screen as-is or iframe/embed it in other tools.",
+    "href": "/docs/ui"
+  },
+  {
+    "id": "docs/ui#embedding-the-panel-manually",
+    "title": "Embedding the panel manually",
+    "content": "If you would rather place the approval panel inside a custom screen (for example alongside other stats), include the shared partial and keep the stacks in place so the JavaScript loads: Behind the scenes the `guardrails::panel` partial and the standalone page use the same Alpine component, so you get identical behaviour whichever route you take.",
     "href": "/docs/ui"
   },
   {
     "id": "docs/ui#customization-tips",
     "title": "Customization Tips",
-    "content": "- Tailor the request list by modifying `index.blade.php` after publishing. - Harden buttons with your authorization logic if you deviate from default permissions. - Hook into the API to extend payloads (e.g., append approvable previews).",
+    "content": "- Tailor the request list by editing `resources/views/vendor/guardrails/index.blade.php` after publishing. The Alpine component lives inside `guardrailsComponent()`. - Need different fonts or colours? Override the CSS block in the published view or swap in your design system when embedding. - Harden buttons with your authorization logic if you deviate from default permissions—use policies or middleware to guard the controller action. - Hook into the API to extend payloads (e.g., append approvable previews) or add additional actions alongside the Approve button.",
     "href": "/docs/ui"
   },
   {
@@ -494,31 +668,55 @@
   {
     "id": "docs/usage-controllers#controller-interception-guide",
     "title": "Controller Interception Guide",
-    "content": "Use `OVAC\\\\Guardrails\\\\Concerns\\\\InteractsWithActorApproval` in your controller to route critical mutations through Guardrails without touching models. Options - event: creating|updating|custom (default updating) - only: array attribute keys to guard (overrides model rules) - except: array attribute keys to ignore - flow: array preset flow (overrides model flow) - extender: `FlowExtender` to build a flow fluently",
+    "content": "Use `OVAC\\\\Guardrails\\\\Http\\\\Concerns\\\\InteractsWithGuardrail` in your controller to route critical mutations through Guardrails without touching models. > Guardrails uses the guard defined in `config('guardrails.auth.guard')`, falling back to `auth.defaults.guard`. Make sure that guard is authenticated before calling the interceptor.",
+    "href": "/docs/usage-controllers"
+  },
+  {
+    "id": "docs/usage-controllers#mixing-guards-in-a-flow",
+    "title": "Mixing Guards in a Flow",
+    "content": "You can override the guard per step by chaining `guard()` within the flow builder: Each call to `guard()` applies to the current in-progress step, allowing cross-guard approval chains. Options - event: creating|updating|custom (default updating) - only: array attribute keys to guard (overrides model rules) - except: array attribute keys to ignore - flow: array preset flow (overrides model flow) - extender: `FlowExtender` to build a flow fluently - description: summary persisted on the approval request - meta: array of extra request metadata stored server-side - Signer rules in your flow can use permissions, roles, and initiator overlap. Consult the [Signing Policy Reference](./signing-policy.md) for evaluation order and customization tips.",
+    "href": "/docs/usage-controllers"
+  },
+  {
+    "id": "docs/usage-controllers#related-guides",
+    "title": "Related Guides",
+    "content": "- [Model Guarding Guide](./usage-models.md) — Let your Eloquent models stage approvals automatically. - [Using Your Own Controllers](./custom-controllers.md) — Swap in bespoke routes while reusing Guardrails internals. - [Advanced Flows](./advanced.md) — Compose complex policies for controller captures. - [Full Testing Guide](./testing-full.md) — Validate interceptor behaviour with Pest and Testbench.",
     "href": "/docs/usage-controllers"
   },
   {
     "id": "docs/usage-models#usage-models",
     "title": "usage-models",
-    "content": "title: Model Guarding Guide description: Use the ActorGuarded trait to stage changes for approval.",
+    "content": "title: Model Guarding Guide description: Use the Guardrail trait to stage changes for approval.",
     "href": "/docs/usage-models"
   },
   {
     "id": "docs/usage-models#model-guarding-guide",
     "title": "Model Guarding Guide",
-    "content": "Use `OVAC\\\\Guardrails\\\\Concerns\\\\ActorGuarded` to intercept and stage critical changes on Eloquent models. When an authenticated actor attempts to modify guarded attributes, Guardrails creates an `ApprovalRequest` with steps and prevents the write. Once the flow completes, Guardrails applies the changes.",
+    "content": "Use `OVAC\\\\Guardrails\\\\Concerns\\\\Guardrail` to intercept and stage critical changes on Eloquent models. When an authenticated initiator attempts to modify guarded attributes, Guardrails creates an `ApprovalRequest` with steps and prevents the write. Once the flow completes, Guardrails applies the changes.",
     "href": "/docs/usage-models"
   },
   {
     "id": "docs/usage-models#how-it-works",
     "title": "How It Works",
-    "content": "- The trait hooks into the model’s updating event. - If there is an authenticated `staff` user and guarded attributes changed, Guardrails creates an `ApprovalRequest` in the `pending` state and prevents the write (returns false in the updater). - When the flow completes (threshold met in the final step), the pending changes are applied to the model in the approvals controller.",
+    "content": "- The trait hooks into the model’s updating event. - If there is an authenticated user on the configured guard and guarded attributes changed, Guardrails creates an `ApprovalRequest` in the `pending` state and prevents the write (returns false in the updater). - When the flow completes (threshold met in the final step), the pending changes are applied to the model in the approvals controller. - Guardrails stores a human-readable description for audits. Provide one via `guardrailApprovalDescription()` (or define your own helper) to customise the audit trail. If you omit it, Guardrails generates a default summary listing the changed attributes. - Flows may reference permissions, roles, and initiator overlap. See the [Signing Policy Reference](./signing-policy.md) for details on how Guardrails evaluates each rule. - Flows may reference permissions, roles, initiator overlap, and even mix different guards per step—see [Controller Interception Guide](./usage-controllers.md#mixing-guards-in-a-flow) for an example.",
+    "href": "/docs/usage-models"
+  },
+  {
+    "id": "docs/usage-models#runtime-justifications",
+    "title": "Runtime Justifications",
+    "content": "Collect a justification from the initiator (for example `approval_description` on a form request) and push it into the Guardrails context before calling `save()`: > For a multi-step example that mixes guards, see the [Controller Interception Guide](./usage-controllers.md#mixing-guards-in-a-flow). Guardrails clears the context after each capture so subsequent saves start fresh.",
     "href": "/docs/usage-models"
   },
   {
     "id": "docs/usage-models#bypass",
     "title": "Bypass",
     "content": "You can implement your own logic to bypass capturing by using the controller helper instead, or temporarily turning off the global controller toggle.",
+    "href": "/docs/usage-models"
+  },
+  {
+    "id": "docs/usage-models#related-guides",
+    "title": "Related Guides",
+    "content": "- [Controller Interception Guide](./usage-controllers.md) — Capture approvals when you prefer keeping models pristine. - [Advanced Flows](./advanced.md) — Generate signing policies dynamically from runtime context. - [Common Patterns](./patterns.md) — Reuse popular approval configurations. - [Full Testing Guide](./testing-full.md) — Assert Guardrails behaviour in your application tests.",
     "href": "/docs/usage-models"
   },
   {
@@ -614,7 +812,7 @@
   {
     "id": "docs/voting-models#departmental-votes",
     "title": "Departmental Votes",
-    "content": "Notes - Each signature is stored with the `staff_id` and an optional `comment`. - Initiator can be included/preapproved; set `includeInitiator(true, true)` on the builder or step meta.",
+    "content": "Notes - Each signature is stored with the `signer_id` (approver user id) and an optional `comment`. - Initiator can be included/preapproved; set `includeInitiator(true, true)` on the builder or step meta.",
     "href": "/docs/voting-models"
   }
 ]
