@@ -20,11 +20,12 @@
     "illuminate/support": "^10.0 || ^11.0"
   },
   "require-dev": {
+    "laravel/pint": "^1.14",
+    "nunomaduro/collision": "^7.0 || ^8.0",
+    "nunomaduro/larastan": "^2.9",
     "orchestra/testbench": "^8.0 || ^9.0",
     "pestphp/pest": "^2.0",
     "pestphp/pest-plugin-laravel": "^2.0",
-    "nunomaduro/collision": "^7.0 || ^8.0",
-    "laravel/pint": "^1.14",
     "phpstan/phpstan": "^1.10"
   },
   "autoload": {
@@ -57,7 +58,7 @@
     "test": "pest -q",
     "test:coverage": "pest --coverage",
     "test:ci": "pest --coverage --coverage-clover=coverage.xml",
-    "stan": "phpstan analyse",
+    "stan": "phpstan analyse --memory-limit=512M",
     "lint": "pint --test",
     "format": "pint"
   },

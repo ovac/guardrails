@@ -7,16 +7,13 @@ namespace OVAC\Guardrails\Contracts;
  *
  * Usage example:
  *
- * FlowExtensionBuilder::make()
+ * FlowBuilder::make()
  *   ->anyOfPermissions(['orders.manage','orders.escalate'])
  *   ->includeInitiator(true, true)
- *   ->toStep(2, 'Ops Review')
+ *   ->signedBy(2, 'Ops Review')
  *   ->anyOfRoles(['finance_manager','ops_manager'])
- *   ->toStep(1, 'Management')
+ *   ->signedBy(1, 'Management')
  *   ->build();
- */
-/**
- * Contract for building a multi-step approval flow.
  */
 interface FlowExtender
 {
@@ -30,7 +27,7 @@ interface FlowExtender
     /**
      * Set the authentication guard used for signer checks.
      *
-     * @param string $guard Guard name registered in auth.guards
+     * @param  string  $guard  Guard name registered in auth.guards.
      * @return static
      */
     public function guard(string $guard): static;
@@ -38,7 +35,7 @@ interface FlowExtender
     /**
      * Append one or more permissions (all-of by default).
      *
-     * @param array|string $permissions Permission names
+     * @param  array<int, string>|string  $permissions  Permission names.
      * @return static
      */
     public function permissions(array|string $permissions): static;
@@ -46,7 +43,7 @@ interface FlowExtender
     /**
      * Replace the permission list.
      *
-     * @param array|string $permissions Permission names
+     * @param  array<int, string>|string  $permissions  Permission names.
      * @return static
      */
     public function setPermissions(array|string $permissions): static;
@@ -54,7 +51,7 @@ interface FlowExtender
     /**
      * Append permissions and mark as any-of semantics.
      *
-     * @param array|string $permissions
+     * @param  array<int, string>|string  $permissions
      * @return static
      */
     public function anyOfPermissions(array|string $permissions): static;
@@ -62,7 +59,7 @@ interface FlowExtender
     /**
      * Append one or more roles (all-of by default).
      *
-     * @param array|string $roles Role names
+     * @param  array<int, string>|string  $roles  Role names.
      * @return static
      */
     public function roles(array|string $roles): static;
@@ -70,7 +67,7 @@ interface FlowExtender
     /**
      * Replace the role list.
      *
-     * @param array|string $roles Role names
+     * @param  array<int, string>|string  $roles  Role names.
      * @return static
      */
     public function setRoles(array|string $roles): static;
@@ -78,7 +75,7 @@ interface FlowExtender
     /**
      * Append roles and mark as any-of semantics.
      *
-     * @param array|string $roles
+     * @param  array<int, string>|string  $roles
      * @return static
      */
     public function anyOfRoles(array|string $roles): static;
@@ -86,17 +83,17 @@ interface FlowExtender
     /**
      * Finalize current step and push to flow.
      *
-     * @param int|null $threshold Minimum approvals required for this step
-     * @param string|null $name Display name for the step
-     * @param array $meta Additional behavior flags
+     * @param  int|null  $threshold  Minimum approvals required for this step.
+     * @param  string|null  $name  Display name for the step.
+     * @param  array<string, mixed>  $meta  Additional behavior flags.
      * @return static
      */
-    public function toStep(?int $threshold = 1, ?string $name = null, array $meta = []): static;
+    public function signedBy(?int $threshold = 1, ?string $name = null, array $meta = []): static;
 
     /**
      * Add a normalized step array directly.
      *
-     * @param array $step Normalized step array
+     * @param  array<string, mixed>  $step  Normalized step array.
      * @return static
      */
     public function addStep(array $step): static;

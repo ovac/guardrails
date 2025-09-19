@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Feature tests verifying guarded captures on model updates.
+ */
 use Illuminate\Support\Facades\Event;
 use OVAC\Guardrails\Events\ApprovalRequestCaptured;
 use OVAC\Guardrails\Tests\Fixtures\Post;
@@ -25,4 +28,3 @@ it('captures guarded updates and prevents immediate write', function () {
     $req = \OVAC\Guardrails\Models\ApprovalRequest::first();
     expect($req)->not->toBeNull();
 });
-

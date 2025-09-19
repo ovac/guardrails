@@ -17,7 +17,7 @@ class Auth
      */
     public static function guardName(): string
     {
-        $configured = (string) config('guardrails.auth.guard', 'staff');
+        $configured = (string) config('guardrails.auth.guard', config('auth.defaults.guard', 'web'));
         $guards = array_keys((array) config('auth.guards', []));
         if (in_array($configured, $guards, true)) {
             return $configured;
@@ -60,8 +60,8 @@ class Auth
     /**
      * Resolve the Eloquent model class configured for the guard provider.
      *
-     * @param string|null $guard Guard name or null for the configured one
-     * @return string|null Fully-qualified model class or null
+     * @param  string|null  $guard  Guard name or null for the configured one.
+     * @return class-string<Authenticatable>|null  Fully-qualified model class or null.
      */
     public static function providerModelClass(?string $guard = null): ?string
     {
@@ -74,16 +74,29 @@ class Auth
     /**
      * Find a user instance by id using the provider model of the guard.
      *
-     * @param mixed $id Primary key
-     * @param string|null $guard Guard name or null for the configured one
+     * @param  mixed  $id     Primary key value.
+     * @param  string|null  $guard  Guard name or null for the configured one.
      * @return Authenticatable|null
      */
     public static function findUserById($id, ?string $guard = null): ?Authenticatable
     {
         $model = self::providerModelClass($guard);
-        if ($model && class_exists($model) && method_exists($model, 'find')) {
-            return $model::find($id);
+        if (!$model || !class_exists($model)) {
+            return null;
         }
+
+        if (is_subclass_of($model, \Illuminate\Database\Eloquent\Model::class)) {
+            $user = $model::query()->whereKey($id)->first();
+
+            return $user instanceof Authenticatable ? $user : null;
+        }
+
+        if (method_exists($model, 'find')) {
+            $user = $model::find($id);
+
+            return $user instanceof Authenticatable ? $user : null;
+        }
+
         return null;
     }
 }

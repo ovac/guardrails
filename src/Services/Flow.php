@@ -2,7 +2,11 @@
 
 namespace OVAC\Guardrails\Services;
 
-class Flow extends FlowExtensionBuilder
+/**
+ * Convenience entry point for building Guardrails approval flows fluently.
+ *
+ * Extends the base {@see FlowBuilder} to allow container binding and facade usage.
+ */
+class Flow extends FlowBuilder
 {
 }
-

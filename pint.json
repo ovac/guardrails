@@ -2,7 +2,17 @@
   "$schema": "https://laravel.github.io/pint/schema.json",
   "preset": "laravel",
   "rules": {
-    "ordered_imports": true
+    "ordered_imports": true,
+    "not_operator_with_space": false,
+    "not_operator_with_successor_space": false,
+    "no_superfluous_phpdoc_tags": false,
+    "blank_line_before_statement": false,
+    "control_structure_braces": false,
+    "new_with_parentheses": false,
+    "phpdoc_align": false,
+    "phpdoc_separation": false,
+    "no_multiple_statements_per_line": false,
+    "single_line_empty_body": false
   }
 }
 

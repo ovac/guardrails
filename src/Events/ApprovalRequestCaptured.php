@@ -14,7 +14,7 @@ class ApprovalRequestCaptured
     /**
      * Create a new event instance.
      *
-     * @param ApprovalRequest $request The captured request
+     * @param  ApprovalRequest  $request  The captured request.
      */
     public function __construct(public ApprovalRequest $request)
     {

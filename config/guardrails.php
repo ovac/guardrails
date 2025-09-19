@@ -6,10 +6,10 @@ return [
     | Authentication
     |--------------------------------------------------------------------------
     | Choose which Laravel auth guard represents your reviewers/approvers.
-    | Defaults to 'staff' but you can set to 'web', 'api', or any custom guard.
+    | Defaults to your application's auth.defaults.guard (typically 'web').
     */
     'auth' => [
-        'guard' => env('GUARDRAILS_AUTH_GUARD', 'staff'),
+        'guard' => env('GUARDRAILS_AUTH_GUARD', config('auth.defaults.guard', 'web')),
     ],
 
     /*
@@ -21,13 +21,13 @@ return [
     | and the middleware stack protecting those routes.
     |
     */
-    'route_prefix' => env('GUARDRAILS_ROUTE_PREFIX', 'staff/v1/guardrails'),
+    'route_prefix' => env('GUARDRAILS_ROUTE_PREFIX', 'guardrails/api'),
 
     /*
     | The middleware stack for API routes.
     */
     'middleware' => [
-        'api', 'auth:staff', 'idempotent', 'scope.staff.country',
+        'api', 'auth:'.env('GUARDRAILS_AUTH_GUARD', config('auth.defaults.guard', 'web')),
     ],
 
     /*
@@ -39,12 +39,12 @@ return [
     | and the middleware stack protecting it.
     |
     */
-    'page_prefix' => env('GUARDRAILS_PAGE_PREFIX', 'staff/guardrails'),
+    'page_prefix' => env('GUARDRAILS_PAGE_PREFIX', 'guardrails'),
 
     /*
     | The middleware stack for the web page route.
     */
-    'web_middleware' => ['web', 'auth:staff'],
+    'web_middleware' => ['web', 'auth:'.env('GUARDRAILS_AUTH_GUARD', config('auth.defaults.guard', 'web'))],
 
     /*
     |--------------------------------------------------------------------------
@@ -80,11 +80,25 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Signing Policy
+    |--------------------------------------------------------------------------
+    |
+    | Customize how Guardrails resolves role membership when evaluating signer
+    | rules. Provide a closure that receives the authenticated user and returns
+    | an array of role identifiers, or leave null to use built-in fallbacks.
+    |
+    */
+    'signing' => [
+        'resolve_roles_using' => null,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Controller Interceptor
     |--------------------------------------------------------------------------
     |
     | Toggle for the controller helper that routes mutations through Guardrails
-    | when enabled (see InteractsWithActorApproval trait).
+    | when enabled (see InteractsWithGuardrail trait).
     |
     */
     'controller' => [

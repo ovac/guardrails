@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Feature tests for the controller interceptor helper.
+ */
 use OVAC\Guardrails\Services\ControllerInterceptor;
 use OVAC\Guardrails\Services\Flow;
 use OVAC\Guardrails\Tests\Fixtures\Post;
@@ -12,7 +15,14 @@ it('intercepts in controller and captures with custom flow', function () {
 
     $result = ControllerInterceptor::intercept($post, ['published' => true], [
         'only' => ['published'],
-        'extender' => Flow::make()->anyOfPermissions(['content.publish'])->toStep(1, 'Editorial'),
+        'extender' => Flow::make()
+            ->guard('web')
+            ->anyOfPermissions(['content.publish'])
+            ->signedBy(1, 'Editorial')
+            ->guard('api')
+            ->anyOfPermissions(['finance.approve'])
+            ->signedBy(1, 'Finance')
+            ->build(),
     ]);
 
     expect($result['captured'])->toBeTrue();

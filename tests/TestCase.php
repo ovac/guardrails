@@ -5,13 +5,28 @@ namespace OVAC\Guardrails\Tests;
 use Orchestra\Testbench\TestCase as Orchestra;
 use OVAC\Guardrails\GuardrailsServiceProvider;
 
+/**
+ * Base TestCase for Guardrails package feature and unit tests.
+ */
 class TestCase extends Orchestra
 {
+    /**
+     * Register the package service providers used during tests.
+     *
+     * @param  \Illuminate\Foundation\Application  $app
+     * @return array<int, class-string<\Illuminate\Support\ServiceProvider>>
+     */
     protected function getPackageProviders($app)
     {
         return [GuardrailsServiceProvider::class];
     }
 
+    /**
+     * Configure the application environment for the test suite.
+     *
+     * @param  \Illuminate\Foundation\Application  $app
+     * @return void
+     */
     protected function defineEnvironment($app): void
     {
         // Minimal app config
@@ -37,10 +52,17 @@ class TestCase extends Orchestra
 
         // Configure package to use web guard and simple middleware
         $app['config']->set('guardrails.auth.guard', 'web');
-        $app['config']->set('guardrails.middleware', ['api','auth:web']);
-        $app['config']->set('guardrails.web_middleware', ['web','auth:web']);
+        $app['config']->set('guardrails.middleware', ['api', 'auth:web']);
+        $app['config']->set('guardrails.web_middleware', ['web', 'auth:web']);
+        $app['config']->set('guardrails.permissions.view', '');
+        $app['config']->set('guardrails.permissions.sign', '');
     }
 
+    /**
+     * Register the database migrations required for the in-memory sqlite setup.
+     *
+     * @return void
+     */
     protected function defineDatabaseMigrations()
     {
         // Load package migrations and our test fixtures

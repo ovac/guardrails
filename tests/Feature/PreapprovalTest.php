@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Feature tests around initiator pre-approval behaviour.
+ */
 use OVAC\Guardrails\Tests\Fixtures\PrePost;
 use OVAC\Guardrails\Tests\Fixtures\User;
 
@@ -14,4 +17,3 @@ it('preapproves initiator when configured and completes step', function () {
     $step = $req->steps()->firstOrFail();
     expect($step->status)->toBe('completed');
 });
-

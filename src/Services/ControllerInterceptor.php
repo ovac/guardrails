@@ -20,11 +20,13 @@ class ControllerInterceptor
      * - except: array of attribute keys to ignore
      * - flow: preset flow array (overrides model flow)
      * - extender: FlowExtender instance to build a flow
+     * - description: summary attached to the request
+     * - meta: array of extra data stored on the request record
      *
-     * @param object $model Eloquent-like model being mutated
-     * @param array $changes Proposed attribute changes
-     * @param array $options Interceptor options (event, only, except, flow, extender)
-     * @return array{captured:bool,request_id:int|null,changes:array}
+     * @param  object  $model    Eloquent-like model being mutated.
+     * @param  array<string, mixed>  $changes  Proposed attribute changes.
+     * @param  array<string, mixed>  $options  Interceptor options (event, only, except, flow, extender).
+     * @return array{captured: bool, request_id: int|null, changes: array<string, mixed>}
      */
     public static function intercept($model, array $changes, array $options = []): array
     {
@@ -40,10 +42,10 @@ class ControllerInterceptor
 
         // Determine model-declared attributes to guard
         $modelAttrs = [];
-        if (method_exists($model, 'humanGuardAttributes')) {
-            $modelAttrs = (array) $model->humanGuardAttributes();
-        } elseif (property_exists($model, 'humanGuardAttributes') && is_array($model->humanGuardAttributes)) {
-            $modelAttrs = (array) $model->humanGuardAttributes;
+        if (method_exists($model, 'guardrailAttributes')) {
+            $modelAttrs = (array) $model->guardrailAttributes();
+        } elseif (property_exists($model, 'guardrailAttributes') && is_array($model->guardrailAttributes)) {
+            $modelAttrs = (array) $model->guardrailAttributes;
         }
 
         // Final attributes to evaluate
@@ -62,11 +64,11 @@ class ControllerInterceptor
 
         // Custom per-model logic hook
         $requires = false;
-        if (method_exists($model, 'requiresHumanApproval')) {
-            $requires = (bool) $model->requiresHumanApproval($guardable, $event);
+        if (method_exists($model, 'requiresGuardrailApproval')) {
+            $requires = (bool) $model->requiresGuardrailApproval($guardable, $event);
         }
 
-        $shouldGuard = (!empty($guardable) && !method_exists($model, 'requiresHumanApproval')) || ($requires === true);
+        $shouldGuard = (!empty($guardable) && !method_exists($model, 'requiresGuardrailApproval')) || ($requires === true);
         if (!$shouldGuard) {
             return ['captured' => false, 'request_id' => null, 'changes' => $changes];
         }
@@ -77,13 +79,17 @@ class ControllerInterceptor
             if ($ext instanceof FlowExtender) {
                 $options['flow'] = $ext->build();
             }
-        }
-        if (!empty($options['flow'])) {
-            $model->actorApprovalFlow = fn () => (array) $options['flow'];
-            $model->humanApprovalFlow = fn () => (array) $options['flow'];
+            unset($options['extender']);
         }
 
-        $req = \OVAC\Guardrails\Services\ActorApprovalService::capture($model, $guardable, $event);
+        $captureOptions = [];
+        foreach (['description', 'meta', 'flow', 'context', 'request'] as $key) {
+            if (array_key_exists($key, $options)) {
+                $captureOptions[$key] = $options[$key];
+            }
+        }
+
+        $req = \OVAC\Guardrails\Services\GuardrailApprovalService::capture($model, $guardable, $event, $captureOptions);
         return ['captured' => true, 'request_id' => $req->id, 'changes' => $guardable];
     }
 }

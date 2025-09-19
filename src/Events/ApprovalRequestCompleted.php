@@ -12,7 +12,7 @@ class ApprovalRequestCompleted
     /**
      * Create a new event instance.
      *
-     * @param ApprovalRequest $request The approved request
+     * @param  ApprovalRequest  $request  The approved request.
      */
     public function __construct(public ApprovalRequest $request)
     {

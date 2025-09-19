@@ -6,30 +6,40 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * Run the migrations.
+     *
+     * @return void
+     */
     public function up(): void
     {
         // Per-request steps define reviewer rules and thresholds.
         //
         // Each step belongs to a request and is completed when the number of
         // recorded approvals reaches its threshold.
-        Schema::create('human_approval_steps', function (Blueprint $table) {
+        Schema::create('guardrail_approval_steps', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->unsignedBigInteger('request_id')->index()
                 ->comment('Parent approval request.');
             $table->unsignedInteger('level')->comment('Step order (1-based).');
             $table->string('name')->comment('Display name for this step.');
             $table->unsignedInteger('threshold')->default(1)->comment('Approvals required.');
-            $table->enum('status', ['pending','completed','rejected'])->default('pending');
+            $table->enum('status', ['pending', 'completed', 'rejected'])->default('pending');
             $table->json('meta')->nullable()->comment('Signer rules and behavior flags.');
             $table->dateTime('completed_at')->nullable();
             $table->timestamps();
 
-            $table->foreign('request_id')->references('id')->on('human_approval_requests')->onDelete('cascade');
+            $table->foreign('request_id')->references('id')->on('guardrail_approval_requests')->onDelete('cascade');
         });
     }
 
+    /**
+     * Reverse the migrations.
+     *
+     * @return void
+     */
     public function down(): void
     {
-        Schema::dropIfExists('human_approval_steps');
+        Schema::dropIfExists('guardrail_approval_steps');
     }
 };

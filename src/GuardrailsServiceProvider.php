@@ -5,15 +5,10 @@ namespace OVAC\Guardrails;
 use Illuminate\Support\ServiceProvider;
 
 /**
- * GuardrailsServiceProvider boots routes, views, config and publishable assets
- * for the ovac/guardrails package when embedded in an application.
- */
-/**
  * Laravel service provider for the ovac/guardrails package.
  *
- * - Registers and merges configuration
- * - Boots routes, views and publishable resources
- * - Optionally prints a one-time support message in console
+ * Registers configuration, boots routes/views/publishable assets, and optionally prints
+ * a one-time console support message for maintainers.
  */
 class GuardrailsServiceProvider extends ServiceProvider
 {
@@ -74,14 +69,6 @@ class GuardrailsServiceProvider extends ServiceProvider
             $this->publishes([
                 __DIR__.'/../resources/assets' => public_path('vendor/guardrails'),
             ], 'guardrails-assets');
-        }
-
-        // Docs
-        if (is_dir(__DIR__.'/../resources/docs')) {
-            $this->publishes([
-                __DIR__.'/../README.md' => base_path('docs/guardrails/README.md'),
-                __DIR__.'/../resources/docs' => base_path('docs/guardrails'),
-            ], 'guardrails-docs');
         }
     }
 

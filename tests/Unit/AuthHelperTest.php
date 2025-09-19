@@ -12,4 +12,3 @@ it('resolves provider model from guard and finds user by id', function () {
         ->toBe(User::class)
         ->and(AuthHelper::findUserById($id)->id)->toBe($id);
 });
-

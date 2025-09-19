@@ -1,12 +1,20 @@
 <?php
 
+/**
+ * Feature tests exercising the approval flow endpoints.
+ */
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Gate;
 use OVAC\Guardrails\Events\ApprovalRequestCompleted;
 use OVAC\Guardrails\Tests\Fixtures\Post;
 use OVAC\Guardrails\Tests\Fixtures\User;
 
 it('approves a step via API and applies changes', function () {
-    $user = User::create(['name' => 'Editor', 'perms' => ['content.publish']]);
+    $user = User::create([
+        'name' => 'Editor',
+        'perms' => ['content.publish', 'approvals.manage'],
+        'roles' => ['editor'],
+    ]);
     $post = Post::create(['title' => 'Hello', 'published' => false]);
     $this->be($user, 'web');
 
@@ -19,6 +27,12 @@ it('approves a step via API and applies changes', function () {
 
     // Approve via HTTP route
     $prefix = trim((string) config('guardrails.route_prefix'), '/');
+    Gate::define('approvals.manage', fn () => true);
+    config([
+        'guardrails.permissions.sign' => null,
+        'guardrails.middleware' => ['api'],
+    ]);
+
     $resp = $this->post('/'.$prefix.'/'.$req->id.'/steps/'.$step->id.'/approve');
     $resp->assertOk();
 
@@ -30,4 +44,3 @@ it('approves a step via API and applies changes', function () {
     $post->refresh();
     expect($post->published)->toBeTrue();
 });
-
