@@ -27,7 +27,7 @@
     Guardrails Documentation Hub
   </text>
   <text x="320" y="330" fill="#d0d0e6" font-family="'Inter', 'Segoe UI', sans-serif" font-size="32">
-    Human-in-the-loop approvals for Laravel, with versioned docs, playgrounds, and AI answers.
+    Operational approvals engine for Laravel, with versioned docs, playgrounds, and AI answers.
   </text>
   <g fill="#fff" font-family="'Inter', 'Segoe UI', sans-serif" font-size="28" opacity="0.9">
     <text x="320" y="410">• Interactive Playground for flow building</text>
