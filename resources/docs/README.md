@@ -32,39 +32,14 @@ Sections
 
 ```mermaid
 flowchart TD
-  A["Mutation attempt<br>(Model trait or ControllerInterceptor)"] --> B{"Guardrails active<br/> guardable attrs<br/> requires approval?"}
-  B -- No --> IM["Apply change immediately"]
-  B -- Yes --> CAP["Capture approval request"]
-
-  CAP --> PS["Persist steps and signer meta"]
-  PS --> INI{"Initiator eligible?"}
-  INI -- Yes --> SIG["Auto-create initiator signature"]
-  INI -- No --> QUE["Queue for reviewers"]
-  SIG --> QUE
-
-  QUE --> E1["Event: ApprovalRequestCaptured"]
-  E1 --> IDX["Review queue shows pending steps to eligible users"]
-  IDX --> OPEN["Reviewer opens step"]
-  OPEN --> CAN{"SigningPolicy allows signer?"}
-  CAN -- No --> IDX
-  CAN -- Yes --> DEC{Decision}
-
-  DEC -- Approve --> APPR["Record approval signature"]
-  APPR --> THR{"Approval threshold met?"}
-  THR -- No --> IDX
-  THR -- Yes --> STEP_OK["Mark step complete"]
-  STEP_OK --> MORE{"More steps pending?"}
-  MORE -- Yes --> NEXT["Move to next pending step"]
-  NEXT --> IDX
-  MORE -- No --> REQ_OK["Mark request approved"]
-  REQ_OK --> APPLY["Apply new_data via withoutGuardrail()"]
-  APPLY --> END_OK["Event: ApprovalRequestCompleted"]
-
-  DEC -- Reject --> REJ["Record rejection signature"]
-  REJ --> RTHR{"Rejection threshold met?"}
-  RTHR -- No --> IDX
-  RTHR -- Yes --> REQ_REJ["Mark request rejected"]
-  REQ_REJ --> END_REJ["Event: ApprovalRequestRejected"]
+  Start[Change attempted] --> Guard{Guardrails guard?}
+  Guard -- No --> ApplyNow[Apply change immediately]
+  Guard -- Yes --> Capture[Capture request and steps]
+  Capture --> Review{Reviewer decision}
+  Review -- Approve --> Apply[Apply new data]
+  Review -- Reject --> Halt[Reject request]
+  Apply --> Done[Emit completion events]
+  Halt --> Done
 ```
 
 - [Database & Migrations](./database.md)
