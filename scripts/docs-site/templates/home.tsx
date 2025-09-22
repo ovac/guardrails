@@ -43,7 +43,7 @@ export default function Home(): JSX.Element {
             Explore secure approval flows, tweak interactive playgrounds, and let the AI chat craft implementation-ready snippets for your team.
           </p>
           <div className={styles.heroButtons}>
-            <Link className="button button--secondary button--lg" to="/docs/overview">
+            <Link className="button button--secondary button--lg" to="/docs/">
               Dive into the Docs
             </Link>
             <Link className="button button--info button--lg" to="/playground">
