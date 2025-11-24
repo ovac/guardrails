@@ -476,13 +476,27 @@ function createSiteStructure(siteDir, options) {
     PACKAGIST_URL: packagistUrl,
     CANONICAL_URL: canonicalUrl,
     CURRENT_YEAR: currentYear,
-    NAVBAR_VERSION_ITEM: hasVersions
-      ? `        {\n          type: 'docsVersionDropdown',\n          position: 'right',\n          dropdownActiveClassDisabled: true,\n        },\n`
-      : '',
-    DOCS_VERSION_CONFIG: hasVersions
-      ? `          versions: {\n            current: {\n              label: 'Next',\n            },\n          },\n          lastVersion: '${versions[0]}',\n`
-      : '',
   };
+
+  if (hasVersions) {
+    const stableVersions = versions.filter((version) => !version.includes('-'));
+    const lastVersion = stableVersions[0] || versions[0];
+    const versionConfigEntries = versions
+      .map((version) => {
+        const isPrerelease = version.includes('-');
+        const label = isPrerelease ? `${version} (alpha)` : version;
+        const banner = isPrerelease ? "              banner: 'unreleased',\n" : '';
+        return `            '${version}': {\n              label: '${label}',\n${banner}            },\n`;
+      })
+      .join('');
+
+    replacements.NAVBAR_VERSION_ITEM = `        {\n          type: 'docsVersionDropdown',\n          position: 'right',\n          dropdownActiveClassDisabled: true,\n        },\n`;
+
+    replacements.DOCS_VERSION_CONFIG = `          versions: {\n            current: {\n              label: 'Next',\n            },\n${versionConfigEntries}          },\n          lastVersion: '${lastVersion}',\n`;
+  } else {
+    replacements.NAVBAR_VERSION_ITEM = '';
+    replacements.DOCS_VERSION_CONFIG = '';
+  }
 
   const files = new Map([
     ['package.json', 'package.json'],
