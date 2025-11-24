@@ -139,10 +139,67 @@ $result = $this->guardrailIntercept($post, ['published' => true], [
 ]);
 ```
 
+### Configurable controller flows (no code changes)
+
+Keep controllers tiny and let ops override steps from `config/guardrails.php`. The helper will (a) look for `guardrails.flows.<feature>.<action>`, (b) fall back to your coded flow when missing, and (c) merge handy meta defaults (like `summary`/`hint`) onto every step.
+
+```php
+// config/guardrails.php
+'flows' => [
+    'posts' => [
+        'publish' => [
+            [
+                'name' => 'Editorial Approval',
+                'threshold' => 1,
+                'signers' => [
+                    'guard' => 'web',
+                    'permissions' => ['content.publish'],
+                    'permissions_mode' => 'any',
+                    'roles' => [],
+                    'roles_mode' => 'all',
+                ],
+                'meta' => [
+                    'include_initiator' => false,
+                    'preapprove_initiator' => true,
+                    'hint' => 'Editor must sign off before publishing.',
+                ],
+            ],
+        ],
+    ],
+],
+// or flatten the key if you prefer:
+// 'flows' => ['posts.publish' => [[ /* steps */ ]]],
+// single-step shorthand is also valid (no extra brackets):
+// 'flows' => [
+//     'posts.publish' => [
+//         'name' => 'Editorial Approval',
+//         'threshold' => 1,
+//         'signers' => ['guard' => 'web', 'permissions' => ['content.publish']],
+//     ],
+// ],
+```
+
+```php
+// Controller
+use OVAC\Guardrails\Services\Flow;
+
+// Resolve "posts.publish" flow: config first, fallback to code, merge meta defaults.
+$flow = $this->guardrailFlow(
+    'posts.publish',
+    Flow::make()->anyOfPermissions(['content.publish'])->includeInitiator(true, true)->signedBy(2, 'Editorial Approval')->build(),
+    ['summary' => 'Publish request for '.$post->title]
+);
+
+$result = $this->guardrailIntercept($post, ['published' => true], [
+    'description' => 'Editorial approval required before publishing.',
+    'flow' => $flow,
+]);
+```
+
 ## Why Teams Use It
 
 - Approval confidence for critical data while keeping code changes small.
-- Human‑readable flow rules with real‑world patterns (two‑man rule, peer review, escalation).
+- Human-readable flow rules with real-world patterns (two-man rule, peer review, escalation).
 - Works with your auth today — Spatie permissions if present, token abilities otherwise.
 
 ## Use Cases (with examples)

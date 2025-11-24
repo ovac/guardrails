@@ -5,6 +5,7 @@ import dracula from 'react-syntax-highlighter/dist/esm/styles/prism/dracula';
 import oneLight from 'react-syntax-highlighter/dist/esm/styles/prism/one-light';
 
 type Scenario = 'model' | 'controller';
+type OutputMode = 'flow' | 'config' | 'controller';
 
 type StepMode = 'any' | 'all';
 
@@ -26,6 +27,8 @@ type FlowConfig = {
   steps: FlowStep[];
   fields: string;
   scenario: Scenario;
+  outputMode?: OutputMode;
+  configKey?: string;
 };
 
 type TemplateMeta = {
@@ -622,15 +625,19 @@ type TemplateKey = keyof typeof templatePresets;
 function cloneFlowConfig(config: FlowConfig): FlowConfig {
   return {
     ...config,
+    outputMode: config.outputMode ?? 'flow',
+    configKey: config.configKey ?? 'feature.action',
     steps: config.steps.map((step) => ({...step})),
   };
 }
 
 const CONTROL_TOOLTIPS = {
   templateSelect: 'Pick a preset to pre-fill steps, signer rules, and fields.',
-  scenarioModel: 'Generate an approval flow for Eloquent models guarded by Guardrails.',
-  scenarioController: 'Generate an approval hook for controller-based intercepts.',
+  outputFlow: 'Generate Flow::make() code on your model.',
+  outputConfig: 'Generate config/guardrails.php entry (dot keys + single-step shorthand).',
+  outputController: 'Generate an approval hook for controller-based intercepts.',
   fields: 'Comma separated list of attributes or payload keys that Guardrails should protect.',
+  configKey: 'Feature.action key stored under guardrails.flows (e.g., posts.publish).',
   includeInitiator: 'Counts the initiator toward thresholds when they meet signer rules.',
   stepLabel: 'Title shown to reviewers in the approval UI.',
   approvals: 'How many approvals must be collected before the step completes.',
@@ -865,6 +872,70 @@ function buildControllerSnippet(values: FlowConfig, templateKey: TemplateKey): s
   return `<?php\n\nuse App\\Http\\Controllers\\Controller;\nuse Illuminate\\Http\\Request;\nuse OVAC\\Guardrails\\Http\\Concerns\\InteractsWithGuardrail;\nuse OVAC\\Guardrails\\Services\\Flow;\nuse OVAC\\Guardrails\\Support\\SigningPolicy;\n\nclass ${controllerClass} extends Controller\n{\n    /** Enables Guardrails controller interception helpers. */\n    use InteractsWithGuardrail;\n\n    /**\n     * ${controllerSummary}\n     *\n${bodyParamSection}     * @param  Request       $request  Incoming HTTP request containing validated data.\n     * @param  ExampleModel  $model    Domain model instance that is being changed.\n     * @return array{captured: bool, request_id: ?string, changes: array<string, mixed>} Guardrails capture metadata.\n     */\n    public function update(Request $request, ExampleModel $model): array\n    {\n        /** @var array<string, mixed> $data */\n        $data = $request->validated([${formatPhpArray(allowedFields)}]);\n\n        return $this->guardrailIntercept($model, $data, [\n            'description' => '${escapePhpString(preset.controller.description)}',\n            'only' => [${formatPhpArray(allowedFields)}],\n            'extender' => function (SigningPolicy $policy): array {\n                return [\n${flowLines.map((line) => `                    ${line}`).join('\n')}\n                ];\n            },\n        ]);\n    }\n}\n`;
 }
 
+function buildConfigStep(step: ReturnType<typeof sanitizeSteps>[number], includeInitiator: boolean, wrapInArray: boolean): string {
+  const permissions = parseCsv(step.permissions);
+  const roles = parseCsv(step.roles);
+  const signerLines = [
+    "'guard' => 'web',",
+    `            'permissions' => [${formatPhpArray(permissions)}],`,
+    `            'permissions_mode' => '${step.permissionsMode}',`,
+    `            'roles' => [${formatPhpArray(roles)}],`,
+    `            'roles_mode' => '${step.rolesMode}',`,
+    `            'same_permission_as_initiator' => ${step.samePermissionAsInitiator ? 'true' : 'false'},`,
+    `            'same_role_as_initiator' => ${step.sameRoleAsInitiator ? 'true' : 'false'},`,
+  ];
+
+  const metaLines = [
+    `            'include_initiator' => ${includeInitiator ? 'true' : 'false'},`,
+    "            'preapprove_initiator' => true,",
+  ];
+
+  if (step.minRejections !== null) {
+    metaLines.push(`            'rejection_min' => ${step.minRejections},`);
+  }
+  if (step.maxRejections !== null) {
+    metaLines.push(`            'rejection_max' => ${step.maxRejections},`);
+  }
+
+  const outerIndent = '        ';
+  const innerIndent = wrapInArray ? '            ' : outerIndent;
+
+  const lines = wrapInArray ? [`${outerIndent}[`] : [];
+
+  lines.push(
+    `${innerIndent}'name' => '${escapePhpString(step.label)}',`,
+    `${innerIndent}'threshold' => ${step.approvals},`,
+    `${innerIndent}'signers' => [`,
+    ...signerLines,
+    `${innerIndent}],`,
+    `${innerIndent}'meta' => [`,
+    ...metaLines,
+    `${innerIndent}],`
+  );
+
+  if (wrapInArray) {
+    lines.push(`${outerIndent}]`);
+  }
+
+  return lines.join('\n');
+}
+
+function buildConfigSnippet(values: FlowConfig, templateKey: TemplateKey): string {
+  const preset = templatePresets[templateKey];
+  const steps = sanitizeSteps(values.steps, preset.defaults.steps);
+  const includeInitiator = Boolean(values.includeInitiator);
+  const key = (values.configKey || 'feature.action').trim() || 'feature.action';
+  const wrapInArray = steps.length > 1;
+
+  const stepBlocks = steps
+    .map((step) => buildConfigStep(step, includeInitiator, wrapInArray))
+    .map((block, index) => (wrapInArray ? `${block}${index < steps.length - 1 ? ',' : ''}` : block));
+
+  return `<?php\n\nreturn [\n    'flows' => [\n        '${escapePhpString(key)}' => [\n${stepBlocks.join(
+    '\n'
+  )}\n        ],\n    ],\n];\n`;
+}
+
 export default function Playground(): JSX.Element {
   const [template, setTemplate] = useState<TemplateKey>('twoPerson');
   const [values, setValues] = useState<FlowConfig>(() => cloneFlowConfig(templatePresets.twoPerson.defaults));
@@ -877,9 +948,13 @@ export default function Playground(): JSX.Element {
   const controllerScrollDoneRef = useRef(false);
 
   const snippet = useMemo(() => {
-    return values.scenario === 'model'
-      ? buildModelSnippet(values, template)
-      : buildControllerSnippet(values, template);
+    if (values.outputMode === 'controller') {
+      return buildControllerSnippet(values, template);
+    }
+    if (values.outputMode === 'config') {
+      return buildConfigSnippet(values, template);
+    }
+    return buildModelSnippet(values, template);
   }, [values, template]);
 
   useEffect(() => {
@@ -910,16 +985,29 @@ export default function Playground(): JSX.Element {
     setValues((prev) => ({...prev, [key]: newValue}));
   }
 
-  function handleTemplateChange(event: React.ChangeEvent<HTMLSelectElement>) {
-    const nextTemplate = event.target.value as TemplateKey;
-    setTemplate(nextTemplate);
-    setValues(cloneFlowConfig(templatePresets[nextTemplate].defaults));
-  }
+function handleTemplateChange(event: React.ChangeEvent<HTMLSelectElement>) {
+  const nextTemplate = event.target.value as TemplateKey;
+  setTemplate(nextTemplate);
+  const presetDefaults = cloneFlowConfig(templatePresets[nextTemplate].defaults);
+  setValues((prev) => {
+    const nextOutput = prev.outputMode ?? presetDefaults.outputMode;
+    const nextScenario = nextOutput === 'controller' ? 'controller' : 'model';
+    return {
+      ...presetDefaults,
+      outputMode: nextOutput,
+      scenario: nextScenario,
+      configKey: prev.configKey || presetDefaults.configKey,
+    };
+  });
+}
 
-  function handleScenarioChange(event: React.ChangeEvent<HTMLInputElement>) {
-    const scenario = event.target.value as Scenario;
-    setValues((prev) => ({...prev, scenario}));
-  }
+function handleOutputModeChange(mode: OutputMode) {
+  setValues((prev) => ({
+    ...prev,
+    outputMode: mode,
+    scenario: mode === 'controller' ? 'controller' : 'model',
+  }));
+}
 
   function handleStepChange(index: number, updater: (step: FlowStep) => FlowStep) {
     setValues((prev) => ({
@@ -1085,23 +1173,33 @@ export default function Playground(): JSX.Element {
                 <p>{preset.description}</p>
               </div>
               <div className="playground__toggle" role="radiogroup" aria-label="Generate snippet for">
-                <label className={values.scenario === 'model' ? 'active' : ''} title={CONTROL_TOOLTIPS.scenarioModel}>
+                <label className={values.outputMode === 'flow' ? 'active' : ''} title={CONTROL_TOOLTIPS.outputFlow}>
                   <input
                     type="radio"
-                    name="scenario"
-                    value="model"
-                    checked={values.scenario === 'model'}
-                    onChange={handleScenarioChange}
+                    name="outputMode"
+                    value="flow"
+                    checked={values.outputMode === 'flow'}
+                    onChange={() => handleOutputModeChange('flow')}
                   />
-                  Model flow
+                  Flow builder
                 </label>
-                <label className={values.scenario === 'controller' ? 'active' : ''} title={CONTROL_TOOLTIPS.scenarioController}>
+                <label className={values.outputMode === 'config' ? 'active' : ''} title={CONTROL_TOOLTIPS.outputConfig}>
                   <input
                     type="radio"
-                    name="scenario"
+                    name="outputMode"
+                    value="config"
+                    checked={values.outputMode === 'config'}
+                    onChange={() => handleOutputModeChange('config')}
+                  />
+                  Config entry
+                </label>
+                <label className={values.outputMode === 'controller' ? 'active' : ''} title={CONTROL_TOOLTIPS.outputController}>
+                  <input
+                    type="radio"
+                    name="outputMode"
                     value="controller"
-                    checked={values.scenario === 'controller'}
-                    onChange={handleScenarioChange}
+                    checked={values.outputMode === 'controller'}
+                    onChange={() => handleOutputModeChange('controller')}
                   />
                   Controller intercept
                 </label>
@@ -1109,8 +1207,24 @@ export default function Playground(): JSX.Element {
             </header>
 
         <div className="playground__grid">
+          {values.outputMode === 'config' && (
+            <label className="playground__field playground__field--wide">
+              <span>Config key (feature.action)</span>
+              <input
+                id="configKey"
+                type="text"
+                value={values.configKey}
+                onChange={(event) => handleChange('configKey', event.target.value)}
+                title={CONTROL_TOOLTIPS.configKey}
+              />
+            </label>
+          )}
           <label className="playground__field playground__field--wide">
-            <span>{values.scenario === 'model' ? 'Guarded attributes (comma separated)' : 'Allowed fields (comma separated)'}</span>
+            <span>
+              {values.outputMode === 'controller'
+                ? 'Allowed fields (comma separated)'
+                : 'Guarded attributes (comma separated)'}
+            </span>
             <input
               id="fields"
               type="text"
@@ -1312,7 +1426,7 @@ export default function Playground(): JSX.Element {
               </button>
             </div>
 
-            {values.scenario === 'controller' && (
+            {values.outputMode === 'controller' && (
               <p className="playground__note">{preset.controller.description}</p>
             )}
           </div>

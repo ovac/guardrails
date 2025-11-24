@@ -107,6 +107,70 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Configurable Approval Flows (Controller Interceptor)
+    |--------------------------------------------------------------------------
+    |
+    | Let ops override controller flows without shipping code. Keys are grouped
+    | by feature + action: guardrails.flows.<feature>.<action> = array of steps.
+    | Pull them in with $this->guardrailFlow('orders.approve', $fallback, ['summary' => '...'])
+    | so config wins when present and meta defaults fill any gaps. Each step
+    | mirrors FlowBuilder output:
+    |
+    | You can nest arrays as shown below or use flat dot keys:
+    | 'flows' => ['orders.approve' => [/* steps */]]
+    |
+    | [
+    |   'name' => 'Operations Review',
+    |   'threshold' => 1,
+    |   'signers' => [
+    |       'guard' => 'web',
+    |       'permissions' => ['ops.manage'],
+    |       'permissions_mode' => 'any', // any|all
+    |       'roles' => ['super_admin'],
+    |       'roles_mode' => 'any',       // any|all
+    |       'same_permission_as_initiator' => false,
+    |       'same_role_as_initiator' => false,
+    |   ],
+    |   'meta' => [
+    |       'include_initiator' => false,
+    |       'preapprove_initiator' => true,
+    |       'rejection_min' => null,
+    |       'rejection_max' => null,
+    |       // add your own metadata (e.g., summary, hint)
+    |   ],
+    | ]
+    |
+    | Example override (feature: "orders", action: "approve"):
+    |
+    | 'flows' => [
+    |     'orders' => [
+    |         'approve' => [
+    |             [
+    |                 'name' => 'Risk Review',
+    |                 'threshold' => 1,
+    |                 'signers' => [
+    |                     'guard' => 'web',
+    |                     'permissions' => ['orders.approve'],
+    |                     'permissions_mode' => 'any',
+    |                     'roles' => [],
+    |                     'roles_mode' => 'all',
+    |                 ],
+    |                 'meta' => [
+    |                     'include_initiator' => false,
+    |                     'preapprove_initiator' => true,
+    |                     'hint' => 'High-risk order approval.',
+    |                 ],
+    |             ],
+    |         ],
+    |     ],
+    | ],
+    */
+    'flows' => [
+        // ship empty; applications opt-in per feature/action key
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Support & Sponsorship
     |--------------------------------------------------------------------------
     |

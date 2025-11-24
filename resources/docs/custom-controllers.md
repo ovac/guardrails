@@ -141,7 +141,7 @@ Passing `false` as the fourth argument to `rejectStep()` skips the signer check 
 
 ---
 
-## Pattern 3 – Extend the Stock Controller
+## Pattern 3 — Extend the Stock Controller
 
 Extending `GuardrailApprovalsController` keeps all built-in behaviour (auth, threshold handling, events) while letting you adjust the presentation. This is ideal for teams with OpenAPI/docblock-driven or contract-first APIs.
 
@@ -230,6 +230,25 @@ class ApiApprovalsController extends GuardrailApprovalsController
         ];
     }
 }
+```
+
+### Configurable flows for your custom controllers
+
+Keep your bespoke controllers but still let ops swap steps. `guardrailFlow()` checks `guardrails.flows.<feature>.<action>` first (flat dot key or nested arrays, single-step shorthand allowed), then uses your fallback, and merges meta defaults (e.g., `summary`) onto every step.
+
+```php
+use OVAC\Guardrails\Services\Flow;
+
+$flow = $this->guardrailFlow(
+    'approvals.custom',
+    Flow::make()->anyOfRoles(['ops_manager'])->signedBy(1, 'Ops')->build(),
+    ['summary' => 'Custom approval for request #'.$requestModel->id]
+);
+
+$result = $this->guardrailIntercept($requestModel, $changes, [
+    'description' => 'Custom controller approval.',
+    'flow' => $flow,
+]);
 ```
 
 **Why extend instead of reimplement?**

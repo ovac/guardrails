@@ -3,6 +3,7 @@
 namespace OVAC\Guardrails\Http\Concerns;
 
 use OVAC\Guardrails\Services\ControllerInterceptor;
+use OVAC\Guardrails\Support\ConfigurableFlow;
 
 /**
  * Controller helper to funnel mutations through Guardrails approvals.
@@ -27,5 +28,17 @@ trait InteractsWithGuardrail
             $options['request'] = request();
         }
         return ControllerInterceptor::intercept($model, $changes, $options);
+    }
+
+    /**
+     * Resolve a configured flow (guardrails.flows.<feature>.<action>) with meta defaults.
+     *
+     * @param  string                   $key           Dot key: feature.action (e.g., orders.approve)
+     * @param  array<int, array>|null   $fallback      Flow when config is missing/empty
+     * @param  array<string, mixed>     $metaDefaults  Meta merged onto each step if absent
+     */
+    protected function guardrailFlow(string $key, ?array $fallback = null, array $metaDefaults = []): ?array
+    {
+        return ConfigurableFlow::resolve($key, $fallback, $metaDefaults);
     }
 }

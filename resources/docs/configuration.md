@@ -119,6 +119,58 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Configurable Approval Flows (Controller Interceptor)
+    |--------------------------------------------------------------------------
+    |
+    | Optional overrides for controller-level flows. Keys map to
+    | guardrails.flows.<feature>.<action>. Each value is an array of steps
+    | shaped like FlowBuilder output (signers, threshold, meta).
+    |
+    | Example:
+    | 'flows' => [
+    |     'orders' => [
+    |         'approve' => [
+    |             [
+    |                 'name' => 'Risk Review',
+    |                 'threshold' => 1,
+    |                 'signers' => [
+    |                     'guard' => 'web',
+    |                     'permissions' => ['orders.approve'],
+    |                     'permissions_mode' => 'any',
+    |                     'roles' => [],
+    |                     'roles_mode' => 'all',
+    |                 ],
+|                 'meta' => [
+|                     'include_initiator' => false,
+|                     'preapprove_initiator' => true,
+|                     'hint' => 'Ops review before approving.',
+|                 ],
+|             ],
+|         ],
+|     ],
+| ],
+*/
+'flows' => [
+    // empty by default; opt in per feature/action
+],
+
+// You can also flatten the key if you prefer:
+// 'flows' => [
+//     'orders.approve' => [
+//         ['name' => 'Risk Review', 'threshold' => 1, 'signers' => [...], 'meta' => []],
+//     ],
+// ],
+// Single-step shorthand (no double brackets) is also allowed:
+// 'flows' => [
+//     'orders.approve' => [
+//         'name' => 'Risk Review',
+//         'threshold' => 1,
+//         'signers' => ['guard' => 'web', 'permissions' => ['orders.approve']],
+//     ],
+// ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Support & Sponsorship
     |--------------------------------------------------------------------------
     |
@@ -135,14 +187,17 @@ return [
 ];
 ```
 
+Use `guardrailFlow('<feature>.<action>', $fallback, ['summary' => '...'])` in your controllers to read `guardrails.flows` entries. Config values win when present, otherwise your fallback is used, and the meta defaults merge onto every step.
+
 Notes
 
 - `auth.guard`: Defaults to `auth.defaults.guard` (usually `web`). Set `GUARDRAILS_AUTH_GUARD` or edit the config if approvals should use another guard (e.g. `sanctum`, `api`).
-- `route_prefix`: Base path for the JSON API; adjust to match your application’s namespace.
+- `route_prefix`: Base path for the JSON API; adjust to match your application's namespace.
 - `middleware`: Guardrails defaults to `['api','auth:{guard}`]. Replace or extend this array to match your middleware stack.
 - `page_prefix`: Browser-facing route for the review UI.
 - `views.layout` / `views.section`: Provide a layout if you want the bundled page to yield into your app shell. Leave `layout` `null` to serve the standalone UI, or keep it `null` and include `@include('guardrails::panel')` wherever you want the panel to appear inside your own view.
 - `permissions.view` and `permissions.sign`: Abilities consulted by the routes and UI (map to your policy layer).
+- `flows`: Optional controller overrides keyed as `<feature>.<action>` (e.g., `orders.approve`). Pull them in with `guardrailFlow('orders.approve', $fallback, ['summary' => 'Order #'.$order->id])`; config wins when present, otherwise the fallback is used, and meta defaults are merged onto every step.
 - `signing.resolve_roles_using`: Supply a closure if you need to resolve roles from a custom source (see [Signing Policy Reference](./signing-policy.md)).
 
 ## Authentication helper

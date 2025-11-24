@@ -68,6 +68,56 @@ Options
 - meta: array of extra request metadata stored server-side
 - Signer rules in your flow can use permissions, roles, and initiator overlap. Consult the [Signing Policy Reference](./signing-policy.md) for evaluation order and customization tips.
 
+### Configurable flows from config (drop-in)
+
+Let ops tweak steps without shipping code. `guardrailFlow()` checks `guardrails.flows.<feature>.<action>` first (flat dot key or nested arrays), falls back to your coded flow, and merges meta defaults like `summary` onto every step. Single-step shorthand works too (no double brackets).
+
+```php
+// config/guardrails.php (optional override)
+'flows' => [
+    // flat dot key (clean)
+    'orders.approve' => [[
+        'name' => 'Ops Review',
+        'threshold' => 1,
+        'signers' => [
+            'guard' => 'web',
+            'permissions' => ['orders.approve'],
+            'permissions_mode' => 'any',
+            'roles' => [],
+            'roles_mode' => 'all',
+        ],
+        'meta' => [
+            'include_initiator' => false,
+            'preapprove_initiator' => true,
+        ],
+    ]],
+
+    // single-step shorthand (auto-wrapped)
+    // 'orders.approve' => [
+    //     'name' => 'Ops Review',
+    //     'threshold' => 1,
+    //     'signers' => ['guard' => 'web', 'permissions' => ['orders.approve']],
+    // ],
+],
+```
+
+```php
+// Controller
+use OVAC\Guardrails\Services\Flow;
+
+$flow = $this->guardrailFlow(
+    'orders.approve',
+    Flow::make()->anyOfPermissions(['orders.approve'])->includeInitiator(true, true)->signedBy(2, 'Ops')->build(),
+    ['summary' => 'Order approval for #'.$order->id]
+);
+
+$result = $this->guardrailIntercept($order, $changes, [
+    'description' => 'Approval required to confirm this order.',
+    'only' => ['status'],
+    'flow' => $flow,
+]);
+```
+
 ## Related Guides
 
 - [Model Guarding Guide](./usage-models.md) — Let your Eloquent models stage approvals automatically.
