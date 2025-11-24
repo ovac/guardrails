@@ -1,4 +1,5 @@
 import React, {useEffect, useMemo, useRef, useState} from 'react';
+import {useDocsVersionCandidates} from '@docusaurus/plugin-content-docs/client';
 import {useColorMode} from '@docusaurus/theme-common';
 import {Prism as SyntaxHighlighter} from 'react-syntax-highlighter';
 import dracula from 'react-syntax-highlighter/dist/esm/styles/prism/dracula';
@@ -631,6 +632,11 @@ function cloneFlowConfig(config: FlowConfig): FlowConfig {
   };
 }
 
+function useDocsVersionName(): string {
+  const [primary] = useDocsVersionCandidates('default');
+  return primary?.name ?? 'current';
+}
+
 const CONTROL_TOOLTIPS = {
   templateSelect: 'Pick a preset to pre-fill steps, signer rules, and fields.',
   outputFlow: 'Generate Flow::make() code on your model.',
@@ -941,21 +947,32 @@ export default function Playground(): JSX.Element {
   const [values, setValues] = useState<FlowConfig>(() => cloneFlowConfig(templatePresets.twoPerson.defaults));
   const [copied, setCopied] = useState(false);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const docsVersionName = useDocsVersionName();
+  const supportsConfigOutput = docsVersionName !== '1.0.0';
   const {colorMode} = useColorMode();
   const syntaxTheme = colorMode === 'dark' ? dracula : oneLight;
   const previewScrollRef = useRef<HTMLDivElement | null>(null);
   const initialScrollDoneRef = useRef(false);
   const controllerScrollDoneRef = useRef(false);
 
+  const effectiveOutputMode: OutputMode =
+    !supportsConfigOutput && values.outputMode === 'config' ? 'flow' : values.outputMode ?? 'flow';
+
   const snippet = useMemo(() => {
-    if (values.outputMode === 'controller') {
+    if (effectiveOutputMode === 'controller') {
       return buildControllerSnippet(values, template);
     }
-    if (values.outputMode === 'config') {
+    if (effectiveOutputMode === 'config' && supportsConfigOutput) {
       return buildConfigSnippet(values, template);
     }
     return buildModelSnippet(values, template);
-  }, [values, template]);
+  }, [effectiveOutputMode, supportsConfigOutput, template, values]);
+
+  useEffect(() => {
+    if (!supportsConfigOutput && values.outputMode === 'config') {
+      setValues((prev) => ({...prev, outputMode: 'flow', scenario: 'model'}));
+    }
+  }, [supportsConfigOutput, values.outputMode]);
 
   useEffect(() => {
     const container = previewScrollRef.current;
@@ -985,29 +1002,31 @@ export default function Playground(): JSX.Element {
     setValues((prev) => ({...prev, [key]: newValue}));
   }
 
-function handleTemplateChange(event: React.ChangeEvent<HTMLSelectElement>) {
-  const nextTemplate = event.target.value as TemplateKey;
-  setTemplate(nextTemplate);
-  const presetDefaults = cloneFlowConfig(templatePresets[nextTemplate].defaults);
-  setValues((prev) => {
-    const nextOutput = prev.outputMode ?? presetDefaults.outputMode;
-    const nextScenario = nextOutput === 'controller' ? 'controller' : 'model';
-    return {
-      ...presetDefaults,
-      outputMode: nextOutput,
-      scenario: nextScenario,
-      configKey: prev.configKey || presetDefaults.configKey,
-    };
-  });
-}
+  function handleTemplateChange(event: React.ChangeEvent<HTMLSelectElement>) {
+    const nextTemplate = event.target.value as TemplateKey;
+    setTemplate(nextTemplate);
+    const presetDefaults = cloneFlowConfig(templatePresets[nextTemplate].defaults);
+    setValues((prev) => {
+      const desiredOutput = prev.outputMode ?? presetDefaults.outputMode;
+      const nextOutput = !supportsConfigOutput && desiredOutput === 'config' ? 'flow' : desiredOutput;
+      const nextScenario = nextOutput === 'controller' ? 'controller' : 'model';
+      return {
+        ...presetDefaults,
+        outputMode: nextOutput,
+        scenario: nextScenario,
+        configKey: prev.configKey || presetDefaults.configKey,
+      };
+    });
+  }
 
-function handleOutputModeChange(mode: OutputMode) {
-  setValues((prev) => ({
-    ...prev,
-    outputMode: mode,
-    scenario: mode === 'controller' ? 'controller' : 'model',
-  }));
-}
+  function handleOutputModeChange(mode: OutputMode) {
+    const nextMode = !supportsConfigOutput && mode === 'config' ? 'flow' : mode;
+    setValues((prev) => ({
+      ...prev,
+      outputMode: nextMode,
+      scenario: nextMode === 'controller' ? 'controller' : 'model',
+    }));
+  }
 
   function handleStepChange(index: number, updater: (step: FlowStep) => FlowStep) {
     setValues((prev) => ({
@@ -1183,16 +1202,18 @@ function handleOutputModeChange(mode: OutputMode) {
                   />
                   Flow builder
                 </label>
-                <label className={values.outputMode === 'config' ? 'active' : ''} title={CONTROL_TOOLTIPS.outputConfig}>
-                  <input
-                    type="radio"
-                    name="outputMode"
-                    value="config"
-                    checked={values.outputMode === 'config'}
-                    onChange={() => handleOutputModeChange('config')}
-                  />
-                  Config entry
-                </label>
+                {supportsConfigOutput && (
+                  <label className={values.outputMode === 'config' ? 'active' : ''} title={CONTROL_TOOLTIPS.outputConfig}>
+                    <input
+                      type="radio"
+                      name="outputMode"
+                      value="config"
+                      checked={values.outputMode === 'config'}
+                      onChange={() => handleOutputModeChange('config')}
+                    />
+                    Config entry
+                  </label>
+                )}
                 <label className={values.outputMode === 'controller' ? 'active' : ''} title={CONTROL_TOOLTIPS.outputController}>
                   <input
                     type="radio"
@@ -1204,10 +1225,13 @@ function handleOutputModeChange(mode: OutputMode) {
                   Controller intercept
                 </label>
               </div>
+              {!supportsConfigOutput && (
+                <p className="playground__note">Config output is available in v1.0.1 and later.</p>
+              )}
             </header>
 
         <div className="playground__grid">
-          {values.outputMode === 'config' && (
+          {values.outputMode === 'config' && supportsConfigOutput && (
             <label className="playground__field playground__field--wide">
               <span>Config key (feature.action)</span>
               <input
