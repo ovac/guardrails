@@ -138,6 +138,12 @@
     "href": "/docs/config-recipes"
   },
   {
+    "id": "docs/config-recipes#configurable-controller-flows-one-liner",
+    "title": "Configurable Controller Flows (one-liner)",
+    "content": "Let ops override steps while your controller stays tiny. `guardrailFlow()` checks `guardrails.flows. . ` first, then uses your fallback, and merges meta defaults (like `summary`) onto every step. Use either nested arrays or a flat dot key—and if it's a single step you can skip the double brackets.",
+    "href": "/docs/config-recipes"
+  },
+  {
     "id": "docs/configuration#configuration",
     "title": "configuration",
     "content": "title: Configuration Reference description: Detailed explanation of every config option with defaults.",
@@ -146,7 +152,7 @@
   {
     "id": "docs/configuration#configuration-reference",
     "title": "Configuration Reference",
-    "content": "Publish the config file and review available options: Default config: `config/guardrails.php` Notes - `auth.guard`: Defaults to `auth.defaults.guard` (usually `web`). Set `GUARDRAILS_AUTH_GUARD` or edit the config if approvals should use another guard (e.g. `sanctum`, `api`). - `route_prefix`: Base path for the JSON API; adjust to match your application’s namespace. - `middleware`: Guardrails defaults to `['api','auth:{guard}`]. Replace or extend this array to match your middleware stack. - `page_prefix`: Browser-facing route for the review UI. - `views.layout` / `views.section`: Provide a layout if you want the bundled page to yield into your app shell. Leave `layout` `null` to serve the standalone UI, or keep it `null` and include `@include('guardrails::panel')` wherever you want the panel to appear inside your own view. - `permissions.view` and `permissions.sign`: Abilities consulted by the routes and UI (map to your policy layer). - `signing.resolve_roles_using`: Supply a closure if you need to resolve roles from a custom source (see [Signing Policy Reference](./signing-policy.md)).",
+    "content": "Publish the config file and review available options: Default config: `config/guardrails.php` Use `guardrailFlow(' . ', $fallback, ['summary' => '...'])` in your controllers to read `guardrails.flows` entries. Config values win when present, otherwise your fallback is used, and the meta defaults merge onto every step. Notes - `auth.guard`: Defaults to `auth.defaults.guard` (usually `web`). Set `GUARDRAILS_AUTH_GUARD` or edit the config if approvals should use another guard (e.g. `sanctum`, `api`). - `route_prefix`: Base path for the JSON API; adjust to match your application's namespace. - `middleware`: Guardrails defaults to `['api','auth:{guard}`]. Replace or extend this array to match your middleware stack. - `page_prefix`: Browser-facing route for the review UI. - `views.layout` / `views.section`: Provide a layout if you want the bundled page to yield into your app shell. Leave `layout` `null` to serve the standalone UI, or keep it `null` and include `@include('guardrails::panel')` wherever you want the panel to appear inside your own view. - `permissions.view` and `permissions.sign`: Abilities consulted by the routes and UI (map to your policy layer). - `flows`: Optional contr",
     "href": "/docs/configuration"
   },
   {
@@ -187,8 +193,14 @@
   },
   {
     "id": "docs/custom-controllers#pattern-3-extend-the-stock-controller",
-    "title": "Pattern 3 – Extend the Stock Controller",
-    "content": "Extending `GuardrailApprovalsController` keeps all built-in behaviour (auth, threshold handling, events) while letting you adjust the presentation. This is ideal for teams with OpenAPI/docblock-driven or contract-first APIs. **Why extend instead of reimplement?** - You inherit every bug fix and feature Guardrails ships. - The Guardrails controller already filters approvals so users only see steps they can act on. - You only override the presentation or logging you care about. > Rejection signatures now include threshold metadata. The default `rejectStepResponse()` returns `rejections.count`, `rejections.required`, and `rejections.maximum` so clients can display progress toward the failure threshold.",
+    "title": "Pattern 3 — Extend the Stock Controller",
+    "content": "Extending `GuardrailApprovalsController` keeps all built-in behaviour (auth, threshold handling, events) while letting you adjust the presentation. This is ideal for teams with OpenAPI/docblock-driven or contract-first APIs.",
+    "href": "/docs/custom-controllers"
+  },
+  {
+    "id": "docs/custom-controllers#configurable-flows-for-your-custom-controllers",
+    "title": "Configurable flows for your custom controllers",
+    "content": "Keep your bespoke controllers but still let ops swap steps. `guardrailFlow()` checks `guardrails.flows. . ` first (flat dot key or nested arrays, single-step shorthand allowed), then uses your fallback, and merges meta defaults (e.g., `summary`) onto every step. **Why extend instead of reimplement?** - You inherit every bug fix and feature Guardrails ships. - The Guardrails controller already filters approvals so users only see steps they can act on. - You only override the presentation or logging you care about. > Rejection signatures now include threshold metadata. The default `rejectStepResponse()` returns `rejections.count`, `rejections.required`, and `rejections.maximum` so clients can display progress toward the failure threshold.",
     "href": "/docs/custom-controllers"
   },
   {
@@ -675,6 +687,12 @@
     "id": "docs/usage-controllers#mixing-guards-in-a-flow",
     "title": "Mixing Guards in a Flow",
     "content": "You can override the guard per step by chaining `guard()` within the flow builder: Each call to `guard()` applies to the current in-progress step, allowing cross-guard approval chains. Options - event: creating|updating|custom (default updating) - only: array attribute keys to guard (overrides model rules) - except: array attribute keys to ignore - flow: array preset flow (overrides model flow) - extender: `FlowExtender` to build a flow fluently - description: summary persisted on the approval request - meta: array of extra request metadata stored server-side - Signer rules in your flow can use permissions, roles, and initiator overlap. Consult the [Signing Policy Reference](./signing-policy.md) for evaluation order and customization tips.",
+    "href": "/docs/usage-controllers"
+  },
+  {
+    "id": "docs/usage-controllers#configurable-flows-from-config-drop-in",
+    "title": "Configurable flows from config (drop-in)",
+    "content": "Let ops tweak steps without shipping code. `guardrailFlow()` checks `guardrails.flows. . ` first (flat dot key or nested arrays), falls back to your coded flow, and merges meta defaults like `summary` onto every step. Single-step shorthand works too (no double brackets).",
     "href": "/docs/usage-controllers"
   },
   {
