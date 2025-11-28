@@ -36,6 +36,13 @@ return [
     'route_prefix' => env('GUARDRAILS_ROUTE_PREFIX', 'guardrails/api'),
 
     /*
+    | Optional route name prefix for the API routes. A trailing dot is applied
+    | when provided. Defaults to "guardrails.api." to reduce collisions with
+    | host application route names.
+    */
+    'route_name_prefix' => env('GUARDRAILS_ROUTE_NAME_PREFIX', 'guardrails.api.'),
+
+    /*
     | The middleware stack for API routes.
     */
     'middleware' => [
@@ -193,6 +200,7 @@ Notes
 
 - `auth.guard`: Defaults to `auth.defaults.guard` (usually `web`). Set `GUARDRAILS_AUTH_GUARD` or edit the config if approvals should use another guard (e.g. `sanctum`, `api`).
 - `route_prefix`: Base path for the JSON API; adjust to match your application's namespace.
+- `route_name_prefix`: Name prefix for API routes; defaults to `guardrails.api.` to avoid collisions with application routes.
 - `middleware`: Guardrails defaults to `['api','auth:{guard}`]. Replace or extend this array to match your middleware stack.
 - `page_prefix`: Browser-facing route for the review UI.
 - `views.layout` / `views.section`: Provide a layout if you want the bundled page to yield into your app shell. Leave `layout` `null` to serve the standalone UI, or keep it `null` and include `@include('guardrails::panel')` wherever you want the panel to appear inside your own view.

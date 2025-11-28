@@ -54,7 +54,7 @@ class ApproveByEmailController
             ['decision' => 'approved', 'signed_at' => now(), 'comment' => 'Email link']
         );
 
-        return redirect()->route('guardrails.index')->with('status', 'Approved via email');
+        return redirect()->route('guardrails.api.index')->with('status', 'Approved via email');
     }
 }
 ```
@@ -117,7 +117,7 @@ class SmsApproveController
         $sig->comment = 'SMS code';
         $sig->save();
 
-        return redirect()->route('guardrails.index')->with('status', 'Approved via SMS');
+        return redirect()->route('guardrails.api.index')->with('status', 'Approved via SMS');
     }
 }
 ```

@@ -937,9 +937,11 @@ function buildConfigSnippet(values: FlowConfig, templateKey: TemplateKey): strin
     .map((step) => buildConfigStep(step, includeInitiator, wrapInArray))
     .map((block, index) => (wrapInArray ? `${block}${index < steps.length - 1 ? ',' : ''}` : block));
 
-  return `<?php\n\nreturn [\n    'flows' => [\n        '${escapePhpString(key)}' => [\n${stepBlocks.join(
-    '\n'
-  )}\n        ],\n    ],\n];\n`;
+  const indentedBlocks = stepBlocks
+    .map((block) => block.split('\n').map((line) => `            ${line}`).join('\n'))
+    .join('\n');
+
+  return `<?php\n\nreturn [\n    'flows' => [\n        '${escapePhpString(key)}' => [\n${indentedBlocks}\n        ],\n    ],\n];\n`;
 }
 
 export default function Playground(): JSX.Element {

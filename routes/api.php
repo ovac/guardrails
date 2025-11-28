@@ -9,6 +9,8 @@ use OVAC\Guardrails\Http\Controllers\GuardrailApprovalsController;
  * @noinspection PhpUndefinedFunctionInspection Laravel helper functions are resolved at runtime.
  */
 $prefix = trim((string) config('guardrails.route_prefix', 'guardrails/api'), '/');
+$namePrefix = (string) config('guardrails.route_name_prefix', 'guardrails.api.');
+$namePrefix = $namePrefix === '' ? '' : rtrim($namePrefix, '.').'.';
 $guard = (string) config('guardrails.auth.guard', config('auth.defaults.guard', 'web'));
 $defaultMiddleware = ['api', 'auth:'.$guard];
 $middleware = (array) (config('guardrails.middleware') ?? $defaultMiddleware);
@@ -20,7 +22,7 @@ $hasAbilities = array_key_exists('abilities', $aliases);
 // JSON API routes for Guardrails approval endpoints
 Route::prefix($prefix)
     ->middleware($middleware)
-    ->as('guardrails.')
+    ->as($namePrefix)
     ->group(function () use ($hasAbilities) {
         $indexMw = [];
         $viewAbility = (string) config('guardrails.permissions.view', 'approvals.manage');

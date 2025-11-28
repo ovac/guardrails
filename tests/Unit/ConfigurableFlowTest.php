@@ -11,8 +11,10 @@ it('returns fallback when config flow is missing', function () {
 
     $resolved = ConfigurableFlow::resolve('orders.approve', $fallback, ['summary' => 'hello']);
 
-    expect($resolved)->toBe($fallback)
-        ->and($resolved[0]['meta']['summary'])->toBe('hello');
+    expect($resolved)->toBeArray()
+        ->and($resolved[0]['name'])->toBe('Fallback')
+        ->and($resolved[0]['meta']['summary'])->toBe('hello')
+        ->and($fallback[0]['meta'])->toBe([]);
 });
 
 it('merges meta defaults into configured flow', function () {

@@ -22,6 +22,12 @@ return [
     |
     */
     'route_prefix' => env('GUARDRAILS_ROUTE_PREFIX', 'guardrails/api'),
+    /*
+    | Optional route name prefix for the API routes. A trailing dot is applied
+    | when provided. Defaults to "guardrails.api." to reduce collisions with
+    | host application route names.
+    */
+    'route_name_prefix' => env('GUARDRAILS_ROUTE_NAME_PREFIX', 'guardrails.api.'),
 
     /*
     | The middleware stack for API routes.
@@ -117,7 +123,7 @@ return [
     | mirrors FlowBuilder output:
     |
     | You can nest arrays as shown below or use flat dot keys:
-    | 'flows' => ['orders.approve' => [/* steps */]]
+    | 'flows' => ['orders.approve' => [['step definitions']]]
     |
     | [
     |   'name' => 'Operations Review',
