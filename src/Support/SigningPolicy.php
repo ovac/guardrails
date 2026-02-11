@@ -101,6 +101,7 @@ class SigningPolicy
         if (($requireSamePerm || $requireSameRole) && $hasSpatie) {
             $initiator = null;
             if ($context instanceof ApprovalStep) {
+                /** @var ApprovalRequest|null $relatedRequest */
                 $relatedRequest = $context->request()->first();
                 $initiatorId = $relatedRequest?->initiator_id;
                 if ($initiatorId) {

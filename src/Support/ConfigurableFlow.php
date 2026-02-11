@@ -124,18 +124,6 @@ class ConfigurableFlow
      */
     protected static function isList(array $array): bool
     {
-        if (function_exists('array_is_list')) {
-            return array_is_list($array);
-        }
-
-        $i = 0;
-        foreach ($array as $key => $_) {
-            if ($key !== $i) {
-                return false;
-            }
-            $i++;
-        }
-
-        return true;
+        return array_is_list($array);
     }
 }

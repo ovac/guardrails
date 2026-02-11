@@ -21,9 +21,9 @@
   <!-- CI status -->
   <a href="https://github.com/ovac/guardrails/actions/workflows/run-tests.yml"><img src="https://github.com/ovac/guardrails/actions/workflows/run-tests.yml/badge.svg" alt="Tests"></a>
   <!-- PHP version -->
-  <img alt="PHP" src="https://img.shields.io/badge/PHP-8.1%2B-777BB3?logo=php&logoColor=white">
+  <img alt="PHP" src="https://img.shields.io/badge/PHP-8.2%2B-777BB3?logo=php&logoColor=white">
   <!-- Laravel version -->
-  <img alt="Laravel" src="https://img.shields.io/badge/Laravel-10%2F11-FF2D20?logo=laravel&logoColor=white">
+  <img alt="Laravel" src="https://img.shields.io/badge/Laravel-11%2F12%2F13-FF2D20?logo=laravel&logoColor=white">
 </p>
 
 
@@ -37,7 +37,7 @@ Guardrails is an operational approvals engine for Laravel. Capture every high‑
 - **Model or controller first** – opt in with an Eloquent trait or intercept at the edge of your HTTP layer.
 - **Fluent, composable flows** – stack steps, mix roles and permissions, count initiators, and codify escalation in code.
 - **Complete toolkit** – ships with migrations, API routes, reviewer UI, and exhaustive docs so you can go live quickly.
-- **Laravel-native** – PHP 8.1+, Laravel 10/11, works with Spatie permissions or Sanctum token abilities out of the box.
+- **Laravel-native** – PHP 8.2+, Laravel 11/12/13, works with Spatie permissions or Sanctum token abilities out of the box.
 
 ### How it fits together
 

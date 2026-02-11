@@ -38,6 +38,7 @@ const baseSidebarDefinition = {
       label: 'Guides & Recipes',
       items: [
         'advanced',
+        'agents',
         'config-recipes',
         'custom-controllers',
         'extending-models-and-migrations',

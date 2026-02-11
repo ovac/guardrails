@@ -30,6 +30,7 @@ class ApprovalRequest extends Model
 
     protected $guarded = [];
 
+    /** @var array<string, string> */
     protected $casts = [
         'new_data' => 'array',
         'original_data' => 'array',

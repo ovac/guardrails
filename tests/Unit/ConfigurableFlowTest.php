@@ -10,6 +10,8 @@ it('returns fallback when config flow is missing', function () {
     ];
 
     $resolved = ConfigurableFlow::resolve('orders.approve', $fallback, ['summary' => 'hello']);
+    $expected = $fallback;
+    $expected[0]['meta']['summary'] = 'hello';
 
     expect($resolved)->toBeArray()
         ->and($resolved[0]['name'])->toBe('Fallback')

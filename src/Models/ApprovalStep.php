@@ -128,8 +128,6 @@ class ApprovalStep extends Model
 
     /**
      * Role aggregation mode (any-of vs all-of).
-     *
-     * @return string
      */
     public function getRolesModeAttribute(): string
     {

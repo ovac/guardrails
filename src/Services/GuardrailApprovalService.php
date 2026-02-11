@@ -59,7 +59,7 @@ class GuardrailApprovalService
         $initiator = \OVAC\Guardrails\Support\Auth::user();
         $request->initiator_id = $initiator ? self::resolveSignerId($initiator) : null;
         $request->state = 'pending';
-        if ($description !== null && $description !== '') {
+        if ($description !== '') {
             $request->description = (string) $description;
         }
         $request->new_data = $dirty;
@@ -264,11 +264,9 @@ class GuardrailApprovalService
         $shouldFinalize = $rejectionCount >= $thresholds['min'];
 
         if ($shouldFinalize) {
-            if ($step->status !== 'rejected') {
-                $step->status = 'rejected';
-                $step->completed_at = now();
-                $step->save();
-            }
+            $step->status = 'rejected';
+            $step->completed_at = now();
+            $step->save();
 
             if ($approvalRequest && $approvalRequest->state !== 'rejected') {
                 $approvalRequest->state = 'rejected';
